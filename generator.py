@@ -204,23 +204,83 @@ Credenciales: Licencia Texas TDLR #702789 | OSHA 30 Horas #26-607426714
         "cuerpo_correo": cuerpo_correo
     }
 
-def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str) -> str:
-    """Rellena la plantilla templates/cv_template.html con los datos adaptados."""
+def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: dict = None) -> str:
+    """Rellena la plantilla templates/cv_template.html respetando las opciones de visibilidad."""
     template_path = config.TEMPLATES_DIR / "cv_template.html"
     with open(template_path, "r", encoding="utf-8") as f:
         html = f.read()
 
     p_data = perfil_base["datos_personales"]
+    if opciones is None:
+        opciones = perfil_base.get("opciones_visibilidad", {})
 
-    # Generar bloques HTML
+    # Título Principal: Si usar_titulo_fijo es True, se usa el de datos_personales.
+    # Si es False (desmarcado), se usa el nombre del puesto/perfil de la postulación.
+    if opciones.get("usar_titulo_fijo", False):
+        titulo_final = p_data.get("titulo_principal", "Especialista Técnico")
+    else:
+        titulo_final = datos_cv.get("titulo_objetivo", p_data.get("titulo_principal", "Especialista Técnico"))
+
+    # Resumen Profesional: Si usar_resumen_fijo es True, se muestra literalmente lo escrito ahí.
+    # Si es False (desmarcado), se genera y adapta acorde al perfil y la oferta.
+    if opciones.get("usar_resumen_fijo", True):
+        resumen_final = perfil_base.get("resumen_base_fijo") or datos_cv.get("resumen_adaptado", "")
+    else:
+        resumen_final = datos_cv.get("resumen_adaptado", "")
+
+    # Ubicación: Si mostrar_ubicacion es True, se muestra. Si es False, se omite.
+    if opciones.get("mostrar_ubicacion", True) and p_data.get("ubicacion"):
+        ubicacion_item = f'<div class="contact-item"><strong>📍 Ubicación:</strong> {p_data["ubicacion"]}</div>'
+    else:
+        ubicacion_item = ""
+
+    # GitHub: Si mostrar_github es True, se muestra. Si es False, se omite.
+    if opciones.get("mostrar_github", True) and p_data.get("github"):
+        github_item = f'<div class="contact-item"><strong>🌐 GitHub:</strong> {p_data["github"]}</div>'
+    else:
+        github_item = ""
+
+    # Badges y Disponibilidad
+    badges_items = []
+    if opciones.get("mostrar_licencias", True):
+        badges_items.append("Texas TDLR Electrical License (#702789)")
+        badges_items.append("OSHA 30-Hour Safety (#26-607426714)")
+    badges_items.append("B.S. Electronics Engineer")
+
+    # Disponibilidad: Si mostrar_disponibilidad es True, se muestra en los badges. Si es False, se omite.
+    if opciones.get("mostrar_disponibilidad", True) and p_data.get("disponibilidad"):
+        badges_items.append("TN Visa Eligible" if idioma == "en" else "Elegible Visa TN")
+    badges_items.append("Bilingual (C1)" if idioma == "en" else "Bilingüe (C1)")
+
+    if badges_items:
+        badges_str = " &bull; ".join(badges_items)
+        badges_bar = f'<div class="badges-bar"><strong>Credenciales Clave:</strong> {badges_str}</div>'
+    else:
+        badges_bar = ""
+
+    # Sección Licencias y Certificaciones: Si mostrar_licencias es True, se incluye.
+    # Si es False (desmarcado), se omite por completo del CV PDF.
+    if opciones.get("mostrar_licencias", True) and perfil_base.get("credenciales_clave"):
+        cred_items = [f"<li>{cred}</li>" for cred in perfil_base.get("credenciales_clave", [])]
+        seccion_licencias = f"""
+<div class="section-title">Certificaciones & Licencias Profesionales</div>
+<ul class="credentials-list">
+    {''.join(cred_items)}
+</ul>
+"""
+    else:
+        seccion_licencias = ""
+
+    # Habilidades técnicas
     habilidades_html = "".join([f'<div class="skill-item">{h}</div>' for h in datos_cv.get("habilidades_clave", [])])
 
+    # Experiencia profesional
     logros_list = "".join([f'<li>{l}</li>' for l in datos_cv.get("logros_experiencia", [])])
     experiencia_html = f"""
     <div class="job-block">
         <div class="job-header">
             <div>
-                <span class="job-title">{datos_cv.get('titulo_objetivo', 'Especialista Técnico')}</span> &bull; 
+                <span class="job-title">{titulo_final}</span> &bull; 
                 <span class="job-company">Experiencia en Campo & Proyectos Industriales</span>
             </div>
             <div class="job-meta">2018 - Presente | México & EE. UU.</div>
@@ -231,6 +291,7 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str) -> str:
     </div>
     """
 
+    # Educación
     edu_items = []
     for edu in perfil_base.get("educacion", []):
         edu_items.append(f"""
@@ -241,28 +302,21 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str) -> str:
         """)
     educacion_html = "".join(edu_items)
 
-    cred_items = []
-    for cred in perfil_base.get("credenciales_clave", []):
-        cred_items.append(f"<li>{cred}</li>")
-    credenciales_html = "".join(cred_items)
-
-    badges_str = "Texas TDLR Electrical License (#702789) &bull; OSHA 30-Hour Safety (#26-607426714) &bull; B.S. Electronics Engineer &bull; TN Visa Eligible &bull; Bilingual (C1)"
-
     # Reemplazar variables
     reemplazos = {
         "{{LANG}}": idioma,
         "{{NOMBRE}}": p_data["nombre"],
-        "{{TITULO}}": datos_cv.get("titulo_objetivo", p_data["titulo_principal"]),
+        "{{TITULO}}": titulo_final,
         "{{TELEFONO}}": p_data["telefono"],
         "{{EMAIL}}": p_data["email"],
-        "{{UBICACION}}": p_data["ubicacion"],
-        "{{GITHUB}}": p_data["github"],
-        "{{BADGES}}": badges_str,
-        "{{RESUMEN}}": datos_cv.get("resumen_adaptado", ""),
+        "{{UBICACION_ITEM}}": ubicacion_item,
+        "{{GITHUB_ITEM}}": github_item,
+        "{{BADGES_BAR}}": badges_bar,
+        "{{RESUMEN}}": resumen_final,
         "{{HABILIDADES_HTML}}": habilidades_html,
         "{{EXPERIENCIA_HTML}}": experiencia_html,
         "{{EDUCACION_HTML}}": educacion_html,
-        "{{CREDENCIALES_HTML}}": credenciales_html
+        "{{SECCION_LICENCIAS}}": seccion_licencias
     }
 
     for k, v in reemplazos.items():
@@ -275,12 +329,17 @@ def procesar_postulacion_completa(datos_oferta: dict, usar_ia: bool = True) -> d
     Función principal que:
     1. Analiza y detecta idioma y perfil óptimo.
     2. Adapta el CV y redacta el correo con Gemini o motor local.
-    3. Construye el HTML final ATS.
+    3. Construye el HTML final ATS respetando las opciones de visibilidad.
     4. Compila el PDF descargable mediante Edge Headless.
     5. Retorna toda la información lista para visualizar y guardar en MariaDB.
     """
     perfil_base = load_user_profile()
     desc_oferta = datos_oferta.get("descripcion_oferta", "")
+
+    # Opciones de visibilidad combinadas
+    opciones = dict(perfil_base.get("opciones_visibilidad", {}))
+    if "opciones_visibilidad" in datos_oferta and datos_oferta["opciones_visibilidad"]:
+        opciones.update(datos_oferta["opciones_visibilidad"])
 
     # Idioma
     idioma = datos_oferta.get("idioma", "auto")
@@ -300,8 +359,8 @@ def procesar_postulacion_completa(datos_oferta: dict, usar_ia: bool = True) -> d
     if not resultado_ia:
         resultado_ia = _generar_con_motor_local(datos_oferta, perfil_base, perfil_clave, idioma)
 
-    # Generar HTML
-    html_content = construir_html_cv(resultado_ia, perfil_base, idioma)
+    # Generar HTML con opciones
+    html_content = construir_html_cv(resultado_ia, perfil_base, idioma, opciones=opciones)
 
     # Generar PDF
     empresa_limpia = re.sub(r'[^a-zA-Z0-9]', '_', datos_oferta.get("empresa", "Empresa")).strip('_')

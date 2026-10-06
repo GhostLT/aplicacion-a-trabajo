@@ -193,13 +193,11 @@
     <div class="contact-bar">
         <div class="contact-item"><strong>📞 Tel:</strong> {{TELEFONO}}</div>
         <div class="contact-item"><strong>✉️ Correo:</strong> {{EMAIL}}</div>
-        <div class="contact-item"><strong>📍 Ubicación:</strong> {{UBICACION}}</div>
-        <div class="contact-item"><strong>🌐 GitHub:</strong> {{GITHUB}}</div>
+        {{UBICACION_ITEM}}
+        {{GITHUB_ITEM}}
     </div>
 
-    <div class="badges-bar">
-        <strong>Credenciales Clave:</strong> {{BADGES}}
-    </div>
+    {{BADGES_BAR}}
 </div>
 
 <div class="section-title">Perfil Profesional</div>
@@ -218,10 +216,7 @@
 <div class="section-title">Educación & Formación Académica</div>
 {{EDUCACION_HTML}}
 
-<div class="section-title">Certificaciones & Licencias Profesionales</div>
-<ul class="credentials-list">
-    {{CREDENCIALES_HTML}}
-</ul>
+{{SECCION_LICENCIAS}}
 
 </body>
 </html>

@@ -56,6 +56,15 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
    - Soporte opcional para **Google Gemini API** (`gemini-3.5-flash-lite` / `gemini-3.8-flash`) para sintetizar resúmenes y viñetas con palabras clave exactas.
    - Motor local por reglas 100% offline que garantiza funcionamiento continuo sin conexión o sin clave de API.
 
+7. **🎛️ Opciones Avanzadas de Personalización y Omisión en el CV PDF:**
+   - **Título Principal Dinámico:** Opción seleccionable para fijar un título manual o, si se desmarca, usar automáticamente el **nombre del puesto/perfil de la postulación**.
+   - **Resumen Profesional Base:** Opción para mostrar por defecto lo redactado en el campo fijo o, si se desmarca, generar un resumen adaptativo acorde al perfil y requerimientos específicos de la vacante.
+   - **Licencias y Certificaciones Clave:** Opción para incluir la sección completa en el CV PDF o desmarcarla para **omitirla por completo**.
+   - **Ubicación:** Opción para mostrar u **omitir la ubicación** del encabezado del documento.
+   - **Perfil de GitHub:** Opción para mostrar u **omitir el enlace de GitHub** en el CV PDF.
+   - **Disponibilidad:** Opción para mostrar u **omitir el estatus de disponibilidad / Visa TN** en los distintivos del encabezado.
+   - *Estas opciones se guardan de forma permanente en `user_profile.json` desde la pestaña **Mi Perfil Base** y también se pueden ajustar al instante para cada vacante desde la pestaña **Nueva Postulación**.*
+
 ---
 
 ## 🏗️ Arquitectura del Proyecto

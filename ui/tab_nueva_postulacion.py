@@ -7,6 +7,7 @@ import pyperclip
 
 import generator
 import database
+import profile_data
 from pdf_engine import abrir_pdf_en_sistema, descargar_pdf_a_ruta
 
 class TabNuevaPostulacion(ttk.Frame):
@@ -86,6 +87,37 @@ class TabNuevaPostulacion(ttk.Frame):
         ttk.Label(frame_izq, text="Pega aquí la descripción completa de la vacante (LinkedIn, OCC, Indeed...):", font=("Segoe UI", 8, "italic")).pack(anchor=tk.W, pady=(4, 2))
         self.txt_oferta = scrolledtext.ScrolledText(frame_izq, height=12, wrap=tk.WORD, font=("Consolas", 9))
         self.txt_oferta.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
+
+        # Opciones de personalización del CV PDF para esta postulación
+        p_init = profile_data.load_user_profile()
+        opc_init = p_init.get("opciones_visibilidad", {})
+
+        opts_frame = ttk.LabelFrame(frame_izq, text=" ⚙️ Personalización del CV PDF (Seleccionar / Omitir) ", padding=6)
+        opts_frame.pack(fill=tk.X, pady=(0, 6))
+
+        row1 = ttk.Frame(opts_frame)
+        row1.pack(fill=tk.X, pady=1)
+
+        self.var_opt_ubicacion = tk.BooleanVar(value=opc_init.get("mostrar_ubicacion", True))
+        ttk.Checkbutton(row1, text="Ubicación", variable=self.var_opt_ubicacion).pack(side=tk.LEFT, padx=(0, 10))
+
+        self.var_opt_github = tk.BooleanVar(value=opc_init.get("mostrar_github", True))
+        ttk.Checkbutton(row1, text="GitHub", variable=self.var_opt_github).pack(side=tk.LEFT, padx=(0, 10))
+
+        self.var_opt_disp = tk.BooleanVar(value=opc_init.get("mostrar_disponibilidad", True))
+        ttk.Checkbutton(row1, text="Disponibilidad", variable=self.var_opt_disp).pack(side=tk.LEFT, padx=(0, 10))
+
+        self.var_opt_licencias = tk.BooleanVar(value=opc_init.get("mostrar_licencias", True))
+        ttk.Checkbutton(row1, text="Licencias/Cert.", variable=self.var_opt_licencias).pack(side=tk.LEFT)
+
+        row2 = ttk.Frame(opts_frame)
+        row2.pack(fill=tk.X, pady=2)
+
+        self.var_opt_resumen = tk.BooleanVar(value=opc_init.get("usar_resumen_fijo", True))
+        ttk.Checkbutton(row2, text="Resumen Base Fijo (desmarcar para adaptar)", variable=self.var_opt_resumen).pack(side=tk.LEFT, padx=(0, 10))
+
+        self.var_opt_titulo = tk.BooleanVar(value=opc_init.get("usar_titulo_fijo", False))
+        ttk.Checkbutton(row2, text="Título Fijo (desmarcar para usar puesto de vacante)", variable=self.var_opt_titulo).pack(side=tk.LEFT)
 
         # Opciones y Botón de procesamiento
         btn_frame = ttk.Frame(frame_izq)
@@ -242,6 +274,17 @@ class TabNuevaPostulacion(ttk.Frame):
         t = threading.Thread(target=self._generar_cv_proceso, daemon=True)
         t.start()
 
+    def sincronizar_con_perfil(self):
+        """Actualiza los valores de los checkboxes según lo guardado en user_profile.json."""
+        p = profile_data.load_user_profile()
+        opc = p.get("opciones_visibilidad", {})
+        self.var_opt_ubicacion.set(opc.get("mostrar_ubicacion", True))
+        self.var_opt_github.set(opc.get("mostrar_github", True))
+        self.var_opt_disp.set(opc.get("mostrar_disponibilidad", True))
+        self.var_opt_licencias.set(opc.get("mostrar_licencias", True))
+        self.var_opt_resumen.set(opc.get("usar_resumen_fijo", True))
+        self.var_opt_titulo.set(opc.get("usar_titulo_fijo", False))
+
     def _generar_cv_proceso(self):
         try:
             datos_oferta = {
@@ -251,7 +294,15 @@ class TabNuevaPostulacion(ttk.Frame):
                 "url_oferta": self.entry_url.get().strip(),
                 "descripcion_oferta": self.txt_oferta.get("1.0", tk.END).strip(),
                 "perfil_aplicado": self.perfiles_map[self.combo_perfil.get()],
-                "idioma": self.idiomas_map[self.combo_idioma.get()]
+                "idioma": self.idiomas_map[self.combo_idioma.get()],
+                "opciones_visibilidad": {
+                    "mostrar_ubicacion": self.var_opt_ubicacion.get(),
+                    "mostrar_github": self.var_opt_github.get(),
+                    "mostrar_disponibilidad": self.var_opt_disp.get(),
+                    "mostrar_licencias": self.var_opt_licencias.get(),
+                    "usar_resumen_fijo": self.var_opt_resumen.get(),
+                    "usar_titulo_fijo": self.var_opt_titulo.get()
+                }
             }
 
             usar_ia = self.var_usar_ia.get()

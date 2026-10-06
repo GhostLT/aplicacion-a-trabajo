@@ -95,6 +95,8 @@ class MainWindow(tk.Tk):
         tab_actual = self.notebook.select()
         if tab_actual == str(self.tab_historial):
             self.tab_historial.recargar_datos()
+        elif tab_actual == str(self.tab_nueva):
+            self.tab_nueva.sincronizar_con_perfil()
 
     def _crear_barra_estado(self):
         self.status_bar = tk.Frame(self, bg="#e2e8f0", padx=10, pady=4)

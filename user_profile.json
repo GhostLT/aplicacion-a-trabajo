@@ -163,5 +163,14 @@
         }
       ]
     }
-  }
+  },
+  "opciones_visibilidad": {
+    "usar_titulo_fijo": false,
+    "mostrar_ubicacion": true,
+    "mostrar_github": true,
+    "mostrar_disponibilidad": true,
+    "mostrar_licencias": true,
+    "usar_resumen_fijo": true
+  },
+  "resumen_base_fijo": "Ingeniero en Electrónica y Técnico Especialista con más de 10 años de experiencia técnica en comisionamiento, instalación electromecánica, diagnóstico sistemático de fallas (eléctricas 24VDC/120V/480V, neumáticas y mecánicas) y mantenimiento correctivo/preventivo de maquinaria industrial automatizada. Con 4 años de experiencia de campo en Estados Unidos con Visa TN, Licencia Eléctrica de Texas TDLR (#702789) y Certificación OSHA 30 Horas. Dominio fluido de inglés técnico (C1)."
 }

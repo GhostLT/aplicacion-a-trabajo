@@ -14,6 +14,15 @@ DEFAULT_PROFILE = {
         "idiomas": "Español (Nativo) | Inglés (C1 Profesional Fluido)",
         "disponibilidad": "Inmediata para proyectos locales, viajes o reubicación en EE. UU. (Elegible Visa TN)"
     },
+    "opciones_visibilidad": {
+        "usar_titulo_fijo": False,         # False: usa el nombre del perfil de la postulación; True: usa titulo_principal
+        "mostrar_ubicacion": True,         # True: muestra ubicación en el PDF; False: se omite
+        "mostrar_github": True,            # True: muestra GitHub en el PDF; False: se omite
+        "mostrar_disponibilidad": True,    # True: muestra disponibilidad en el PDF; False: se omite
+        "mostrar_licencias": True,         # True: incluye la sección de licencias; False: se omite en el PDF
+        "usar_resumen_fijo": True          # True: usa por defecto lo escrito en resumen base; False: lo crea acorde al perfil
+    },
+    "resumen_base_fijo": "Ingeniero en Electrónica y Técnico Especialista con más de 10 años de experiencia técnica en comisionamiento, instalación electromecánica, diagnóstico sistemático de fallas (eléctricas 24VDC/120V/480V, neumáticas y mecánicas) y mantenimiento correctivo/preventivo de maquinaria industrial automatizada. Con 4 años de experiencia de campo en Estados Unidos con Visa TN, Licencia Eléctrica de Texas TDLR (#702789) y Certificación OSHA 30 Horas. Dominio fluido de inglés técnico (C1).",
     "credenciales_clave": [
         "Licencia Eléctrica de Texas TDLR (US #702789)",
         "Certificación OSHA 30 Horas en Seguridad de la Construcción e Industrial (US #26-607426714)",
@@ -171,11 +180,23 @@ DEFAULT_PROFILE = {
 }
 
 def load_user_profile():
-    """Carga el perfil del usuario desde JSON o genera el predeterminado."""
+    """Carga el perfil del usuario desde JSON o genera el predeterminado asegurando las opciones de visibilidad."""
     if PROFILE_DATA_FILE.exists():
         try:
             with open(PROFILE_DATA_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                # Asegurar que existan las nuevas opciones de visibilidad
+                if "opciones_visibilidad" not in data:
+                    data["opciones_visibilidad"] = DEFAULT_PROFILE["opciones_visibilidad"]
+                else:
+                    for k, v in DEFAULT_PROFILE["opciones_visibilidad"].items():
+                        if k not in data["opciones_visibilidad"]:
+                            data["opciones_visibilidad"][k] = v
+                
+                if "resumen_base_fijo" not in data:
+                    data["resumen_base_fijo"] = DEFAULT_PROFILE["resumen_base_fijo"]
+
+                return data
         except Exception:
             pass
     
