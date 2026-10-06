@@ -6,9 +6,10 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
 
 ## 🌟 Características Principales
 
-1. **📋 Copiar y Pegar Ofertas de Empleo:**
-   - Campo de texto dedicado para pegar la descripción íntegra de la vacante.
-   - Detección automática o manual del perfil técnico requerido:
+1. **📋 Cargar o Pegar Ofertas de Empleo (Texto o Imagen/Captura):**
+   - **Carga de Capturas de Pantalla / Imágenes:** Botón para cargar fotos o capturas de ofertas (LinkedIn, portales web, WhatsApp, redes sociales) y extraer automáticamente con **Inteligencia Artificial Multimodal (Gemini Vision)** el nombre de la empresa, puesto, ubicación y transcripción completa de los requisitos.
+   - **Pegado Manual:** Campo de texto amplio para pegar descripciones copiadas de cualquier portal de empleo.
+   - **Detección Automática o Manual de Perfil:**
      - *Automatización & Field Service (Houston / PLC)*
      - *Oficial Eléctrico & Instalaciones (Media y Baja Tensión / Texas TDLR)*
      - *Ingeniero Senior Full-Stack & Inteligencia Artificial*
@@ -196,6 +197,7 @@ CREATE TABLE `aplicaciones` (
     `asunto_correo` VARCHAR(500) DEFAULT '',
     `cuerpo_correo` LONGTEXT,
     `ruta_pdf` VARCHAR(500) DEFAULT '',
+    `ruta_imagen` VARCHAR(500) DEFAULT '',
     `notas` TEXT,
     `fecha_creacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `fecha_actualizacion` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

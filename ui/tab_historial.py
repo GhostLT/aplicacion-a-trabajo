@@ -363,3 +363,10 @@ class TabHistorial(ttk.Frame):
         txt_n.pack(fill=tk.BOTH, expand=True)
         txt_n.insert("1.0", app.get("notas", "") or "Sin notas registradas.")
         txt_n.config(state=tk.DISABLED)
+
+        # Si tiene captura/imagen asociada
+        if app.get("ruta_imagen") and os.path.exists(app["ruta_imagen"]):
+            img_bar = ttk.Frame(top, padding=6)
+            img_bar.pack(fill=tk.X, side=tk.BOTTOM)
+            ttk.Label(img_bar, text=f"📷 Captura guardada: {os.path.basename(app['ruta_imagen'])}", font=("Segoe UI", 8, "italic")).pack(side=tk.LEFT, padx=6)
+            ttk.Button(img_bar, text="👁️ Abrir Imagen Original", command=lambda: os.startfile(app["ruta_imagen"])).pack(side=tk.RIGHT, padx=6)

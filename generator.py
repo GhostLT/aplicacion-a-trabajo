@@ -6,10 +6,60 @@ from profile_data import load_user_profile
 from pdf_engine import generar_pdf_desde_html
 
 try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+
+try:
     from google import genai
     HAS_GENAI = True
 except ImportError:
     HAS_GENAI = False
+
+def extraer_datos_de_imagen_oferta(ruta_imagen: str) -> dict:
+    """
+    Lee una imagen o captura de pantalla de una oferta laboral utilizando visión multimodal
+    de Google Gemini y extrae estructuradamente la empresa, puesto, ubicación y descripción completa.
+    """
+    if not HAS_PIL:
+        raise ImportError("Se requiere la librería Pillow (PIL) para procesar imágenes.")
+    if not (HAS_GENAI and config.GEMINI_API_KEY):
+        raise ValueError("Se requiere configurar la API Key de Google Gemini para leer texto desde imágenes.")
+
+    try:
+        img = Image.open(ruta_imagen)
+        client = genai.Client(api_key=config.GEMINI_API_KEY)
+
+        prompt = """
+Analiza minuciosamente esta captura de pantalla o imagen de una oferta de empleo o vacante laboral y extrae toda la información técnica.
+
+Responde ÚNICAMENTE un objeto JSON válido con las siguientes claves exactas:
+{
+  "empresa": "Nombre de la empresa que contrata (o 'Empresa Confidencial' si no se menciona)",
+  "titulo_puesto": "Título exacto de la vacante o puesto",
+  "ubicacion": "Ciudad / Estado / Modalidad de trabajo",
+  "descripcion_completa": "Transcripción clara y detallada de todas las responsabilidades, requisitos técnicos, experiencia solicitada, certificaciones, herramientas y beneficios de la vacante."
+}
+No incluyas texto antes ni después del JSON.
+"""
+        response = client.models.generate_content(
+            model=config.GEMINI_MODEL,
+            contents=[img, prompt]
+        )
+
+        texto_limpio = response.text.strip()
+        if texto_limpio.startswith("```json"):
+            texto_limpio = texto_limpio[7:]
+        if texto_limpio.startswith("```"):
+            texto_limpio = texto_limpio[3:]
+        if texto_limpio.endswith("```"):
+            texto_limpio = texto_limpio[:-3]
+
+        datos = json.loads(texto_limpio.strip())
+        return datos
+    except Exception as e:
+        raise RuntimeError(f"Error procesando la imagen de la oferta con IA: {str(e)}")
 
 def detectar_idioma(texto: str) -> str:
     """Detecta si el texto está principalmente en inglés o español."""

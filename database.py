@@ -74,6 +74,7 @@ def inicializar_base_datos():
                 `asunto_correo` VARCHAR(500) DEFAULT '',
                 `cuerpo_correo` LONGTEXT,
                 `ruta_pdf` VARCHAR(500) DEFAULT '',
+                `ruta_imagen` VARCHAR(500) DEFAULT '',
                 `notas` TEXT,
                 `fecha_creacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
                 `fecha_actualizacion` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -82,6 +83,12 @@ def inicializar_base_datos():
                 INDEX idx_fecha (`fecha_creacion`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             """)
+
+            # Migración: asegurar que exista ruta_imagen si la tabla ya existía
+            cursor.execute("SHOW COLUMNS FROM `aplicaciones` LIKE 'ruta_imagen'")
+            if not cursor.fetchone():
+                cursor.execute("ALTER TABLE `aplicaciones` ADD COLUMN `ruta_imagen` VARCHAR(500) DEFAULT '' AFTER `ruta_pdf`")
+
         conn_db.commit()
         conn_db.close()
         return True, "Base de datos inicializada correctamente"
@@ -97,11 +104,11 @@ def guardar_aplicacion(datos: dict) -> int:
             INSERT INTO aplicaciones (
                 empresa, titulo_puesto, ubicacion, url_oferta, descripcion_oferta,
                 perfil_aplicado, idioma, estado, asunto_correo, cuerpo_correo,
-                ruta_pdf, notas, fecha_creacion, fecha_actualizacion
+                ruta_pdf, ruta_imagen, notas, fecha_creacion, fecha_actualizacion
             ) VALUES (
                 %(empresa)s, %(titulo_puesto)s, %(ubicacion)s, %(url_oferta)s, %(descripcion_oferta)s,
                 %(perfil_aplicado)s, %(idioma)s, %(estado)s, %(asunto_correo)s, %(cuerpo_correo)s,
-                %(ruta_pdf)s, %(notas)s, NOW(), NOW()
+                %(ruta_pdf)s, %(ruta_imagen)s, %(notas)s, NOW(), NOW()
             )
             """
             cursor.execute(sql, {
@@ -116,6 +123,7 @@ def guardar_aplicacion(datos: dict) -> int:
                 "asunto_correo": datos.get("asunto_correo", ""),
                 "cuerpo_correo": datos.get("cuerpo_correo", ""),
                 "ruta_pdf": datos.get("ruta_pdf", ""),
+                "ruta_imagen": datos.get("ruta_imagen", ""),
                 "notas": datos.get("notas", "")
             })
             nuevo_id = cursor.lastrowid

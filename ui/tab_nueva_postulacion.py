@@ -15,6 +15,7 @@ class TabNuevaPostulacion(ttk.Frame):
         super().__init__(parent)
         self.on_guardado_callback = on_guardado_callback
         self.resultado_actual = None
+        self.ruta_imagen_actual = None
 
         self._crear_interfaz()
 
@@ -83,9 +84,49 @@ class TabNuevaPostulacion(ttk.Frame):
 
         grid_frame.columnconfigure(1, weight=1)
 
+        # Barra para Cargar Imagen de la Oferta (Captura de pantalla / foto)
+        img_frame = ttk.LabelFrame(frame_izq, text=" 📷 Cargar Imagen / Captura de la Vacante (Opcional) ", padding=6)
+        img_frame.pack(fill=tk.X, pady=(0, 6))
+
+        img_ctrls = ttk.Frame(img_frame)
+        img_ctrls.pack(fill=tk.X)
+
+        self.btn_cargar_img = ttk.Button(
+            img_ctrls,
+            text="📁 Seleccionar Imagen...",
+            command=self._cargar_imagen_oferta
+        )
+        self.btn_cargar_img.pack(side=tk.LEFT, padx=(0, 6))
+
+        self.btn_leer_img = tk.Button(
+            img_ctrls,
+            text="✨ Extraer Datos con IA (OCR)",
+            bg="#7c3aed",
+            fg="white",
+            font=("Segoe UI", 8, "bold"),
+            relief=tk.FLAT,
+            padx=8,
+            pady=2,
+            command=self._iniciar_extraccion_imagen_thread,
+            state=tk.DISABLED,
+            cursor="hand2"
+        )
+        self.btn_leer_img.pack(side=tk.LEFT, padx=(0, 6))
+
+        self.btn_quitar_img = ttk.Button(
+            img_ctrls,
+            text="❌ Quitar",
+            command=self._quitar_imagen_oferta,
+            state=tk.DISABLED
+        )
+        self.btn_quitar_img.pack(side=tk.LEFT, padx=(0, 6))
+
+        self.lbl_info_img = ttk.Label(img_frame, text="Sin imagen seleccionada.", font=("Segoe UI", 8, "italic"), foreground="#64748b")
+        self.lbl_info_img.pack(anchor=tk.W, pady=(3, 0))
+
         # Pegar descripción de la oferta
-        ttk.Label(frame_izq, text="Pega aquí la descripción completa de la vacante (LinkedIn, OCC, Indeed...):", font=("Segoe UI", 8, "italic")).pack(anchor=tk.W, pady=(4, 2))
-        self.txt_oferta = scrolledtext.ScrolledText(frame_izq, height=12, wrap=tk.WORD, font=("Consolas", 9))
+        ttk.Label(frame_izq, text="Descripción completa de la vacante (extraída de la imagen o pegada manualmente):", font=("Segoe UI", 8, "italic")).pack(anchor=tk.W, pady=(4, 2))
+        self.txt_oferta = scrolledtext.ScrolledText(frame_izq, height=11, wrap=tk.WORD, font=("Consolas", 9))
         self.txt_oferta.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
 
         # Opciones de personalización del CV PDF para esta postulación
@@ -390,6 +431,91 @@ class TabNuevaPostulacion(ttk.Frame):
             if descargar_pdf_a_ruta(pdf_orig, destino):
                 messagebox.showinfo("Descarga Exitosa", f"CV guardado exitosamente en:\n{destino}")
 
+    def _cargar_imagen_oferta(self):
+        """Permite al usuario seleccionar una captura o foto de la postulación."""
+        archivo = filedialog.askopenfilename(
+            title="Seleccionar captura o imagen de la postulación",
+            filetypes=[
+                ("Imágenes", "*.png;*.jpg;*.jpeg;*.webp;*.bmp"),
+                ("Todos los archivos", "*.*")
+            ]
+        )
+        if archivo:
+            self.ruta_imagen_actual = archivo
+            nombre = os.path.basename(archivo)
+            self.lbl_info_img.config(text=f"📷 {nombre}", foreground="#1e293b")
+            self.btn_leer_img.config(state=tk.NORMAL)
+            self.btn_quitar_img.config(state=tk.NORMAL)
+            
+            # Preguntar si desea extraer automáticamente
+            if messagebox.askyesno(
+                "Imagen Seleccionada",
+                f"Se cargó '{nombre}'.\n\n¿Deseas que la Inteligencia Artificial analice la imagen ahora y llene automáticamente los datos de la vacante?"
+            ):
+                self._iniciar_extraccion_imagen_thread()
+
+    def _quitar_imagen_oferta(self):
+        """Quita la imagen seleccionada."""
+        self.ruta_imagen_actual = None
+        self.lbl_info_img.config(text="Sin imagen seleccionada.", foreground="#64748b")
+        self.btn_leer_img.config(state=tk.DISABLED)
+        self.btn_quitar_img.config(state=tk.DISABLED)
+
+    def _iniciar_extraccion_imagen_thread(self):
+        """Inicia el análisis de la imagen en un hilo de fondo."""
+        if not self.ruta_imagen_actual:
+            return
+
+        self.btn_leer_img.config(state=tk.DISABLED)
+        self.lbl_status.config(text="Leyendo y transcribiendo oferta desde la imagen con IA...", foreground="#7c3aed")
+        self.prog_bar.pack(fill=tk.X, pady=(2, 6))
+        self.prog_bar.start(10)
+
+        t = threading.Thread(target=self._procesar_imagen_extraccion, daemon=True)
+        t.start()
+
+    def _procesar_imagen_extraccion(self):
+        try:
+            datos = generator.extraer_datos_de_imagen_oferta(self.ruta_imagen_actual)
+            self.after(0, lambda: self._aplicar_datos_extraidos_imagen(datos))
+        except Exception as e:
+            self.after(0, lambda: self._manejar_error_extraccion_imagen(str(e)))
+
+    def _aplicar_datos_extraidos_imagen(self, datos):
+        self.prog_bar.stop()
+        self.prog_bar.pack_forget()
+        self.btn_leer_img.config(state=tk.NORMAL)
+
+        if datos.get("empresa") and datos["empresa"] != "Empresa Confidencial":
+            self.entry_empresa.delete(0, tk.END)
+            self.entry_empresa.insert(0, datos["empresa"])
+
+        if datos.get("titulo_puesto"):
+            self.entry_puesto.delete(0, tk.END)
+            self.entry_puesto.insert(0, datos["titulo_puesto"])
+
+        if datos.get("ubicacion"):
+            self.entry_ubicacion.delete(0, tk.END)
+            self.entry_ubicacion.insert(0, datos["ubicacion"])
+
+        if datos.get("descripcion_completa"):
+            self.txt_oferta.delete("1.0", tk.END)
+            self.txt_oferta.insert("1.0", datos["descripcion_completa"])
+
+        self.lbl_status.config(text="✅ Datos de la vacante extraídos exitosamente desde la imagen.", foreground="#16a34a")
+        messagebox.showinfo(
+            "Extracción Completa",
+            "✅ Se analizaron con éxito los datos de la vacante a partir de la imagen.\n\n"
+            "Puedes revisarlos en el formulario y pulsar '⚡ Analizar Oferta y Generar CV + Correo'."
+        )
+
+    def _manejar_error_extraccion_imagen(self, error_msg):
+        self.prog_bar.stop()
+        self.prog_bar.pack_forget()
+        self.btn_leer_img.config(state=tk.NORMAL)
+        self.lbl_status.config(text="❌ Error al analizar la imagen.", foreground="#dc2626")
+        messagebox.showerror("Error al Leer Imagen", f"No se pudo extraer la información de la imagen:\n\n{error_msg}")
+
     def _guardar_en_mariadb(self):
         if not self.resultado_actual:
             messagebox.showwarning("Atención", "Genera primero el CV y correo antes de guardar.")
@@ -407,6 +533,7 @@ class TabNuevaPostulacion(ttk.Frame):
             "asunto_correo": self.entry_asunto.get().strip(),
             "cuerpo_correo": self.txt_correo.get("1.0", tk.END).strip(),
             "ruta_pdf": self.resultado_actual.get("ruta_pdf"),
+            "ruta_imagen": self.ruta_imagen_actual or "",
             "notas": self.entry_notas.get().strip()
         }
 
