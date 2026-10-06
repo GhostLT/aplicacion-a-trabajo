@@ -109,6 +109,56 @@ def detectar_perfil_optimo(texto: str) -> str:
         return "automatizacion"
     return perfil_ganador
 
+HABILIDADES_EN = {
+    "automatizacion": [
+        "Automated assembly lines commissioning and startup",
+        "Industrial pneumatics (solenoid valves, cylinders, FRL units, manifolds)",
+        "Expert reading of electrical and pneumatic schematic diagrams (P&ID)",
+        "Diagnostics with Fluke multimeter, clamp meter, and point-to-point loop testing",
+        "LOTO safety procedures (Lockout/Tagout), JHA, and OSHA / NFPA 70E compliance",
+        "Field Service Reports (FSR) preparation and technical client consultation"
+    ],
+    "electrico": [
+        "Medium & Low Voltage electrical installations (24VDC, 120V, 277V, 480V 3-Phase)",
+        "Conduit bending and routing (EMT, Rigid, PVC-coated) per NEC standards",
+        "Distribution panelboards, switchgear, transformers, and motor control centers (MCC)",
+        "Grounding systems, bonding, and Cadweld exothermic welding",
+        "Substation maintenance, cable tray assembly, and megohmmeter insulation testing",
+        "Strict adherence to NFPA 70E, OSHA 30, and Texas TDLR Electrical Code"
+    ],
+    "fullstack_ai": [
+        "Full-Stack Python, TypeScript, React, and Django / FastAPI architecture",
+        "RESTful APIs, microservices, and MariaDB / PostgreSQL database design",
+        "Applied Artificial Intelligence (Gemini API, LLMs, RAG, automated pipelines)",
+        "DevOps, Docker containers, Kubernetes, CI/CD pipelines, and Linux administration",
+        "Cloud Infrastructure (AWS, Google Cloud Platform, Azure)",
+        "Version control (Git / GitHub) and agile software development methodologies"
+    ],
+    "telecom_redes": [
+        "Fiber optic splicing, testing, and troubleshooting (OTDR, Optical Power Meter)",
+        "FTTx / GPON architectures, Optical Network Terminals (ONT), and OLT integration",
+        "Radio Frequency (RF) optimization, antenna alignment, and spectrum analysis",
+        "5G / LTE mobile network access (C-RAN, Wireless Access, Network Slicing)",
+        "Cisco routing & switching, VLANs, TCP/IP protocols, and network monitoring",
+        "Telecom tower and rooftop safety (DC3 / Working at Heights certified)"
+    ],
+    "gerente_mantenimiento": [
+        "Comprehensive facility management and preventive/corrective maintenance plans",
+        "Industrial HVAC systems, chillers, cooling towers, and mechanical rooms",
+        "Operational Budgeting (OPEX / CAPEX) and vendor/contractor management",
+        "Key Performance Indicators (KPIs), MTTR, MTBF, and maintenance software (CMMS)",
+        "Compliance with local safety regulations, fire protection, and environmental audits",
+        "Leadership of multi-disciplinary technical teams and crisis management"
+    ]
+}
+
+LOGROS_EN = [
+    "Rigorous execution of commissioning, systematic diagnostics, and functional testing on industrial equipment.",
+    "Strict regulatory compliance adhering to LOTO safety protocols, daily JHA risk assessments, and OSHA standards.",
+    "Technical management focused on zero unscheduled downtime, root-cause troubleshooting, and high equipment reliability.",
+    "Preparation of comprehensive Field Service Reports (FSR) and direct technical consultation with clients and engineering supervisors."
+]
+
 def _generar_con_gemini(datos_oferta: dict, perfil_base: dict, perfil_clave: str, idioma: str) -> dict:
     """Usa la API de Google Gemini para adaptar el CV y el correo de manera ultra personalizada."""
     if not (HAS_GENAI and config.GEMINI_API_KEY):
@@ -123,6 +173,13 @@ def _generar_con_gemini(datos_oferta: dict, perfil_base: dict, perfil_clave: str
         texto_cv_pdf = perfil_base.get("texto_cv_base_extraido", "")
         bloque_cv_pdf = f"\n--- INFORMACIÓN ÍNTEGRA EXTRAÍDA DEL CV BASE EN PDF DEL CANDIDATO ---\n{texto_cv_pdf[:4000]}\n" if texto_cv_pdf else ""
 
+        is_en = (idioma == "en")
+        instruccion_idioma = f"""
+*** EXIGENCIA ESTRICTA DE IDIOMA ***
+El idioma seleccionado para este documento es: {"INGLÉS (ENGLISH)" if is_en else "ESPAÑOL"}.
+{"Todo el contenido generado en el JSON (titulo_objetivo, resumen_adaptado, habilidades_clave, logros_experiencia, asunto_correo, cuerpo_correo) DEBE ESTAR 100% EN INGLÉS PROFESIONAL FLUIDO (US STANDARD). No mezcles palabras en español." if is_en else "Todo el contenido generado en el JSON DEBE ESTAR 100% EN ESPAÑOL PROFESIONAL FORMAL."}
+"""
+
         prompt = f"""
 Actúa como un experto en redacción de CVs para contratación técnica internacional (ATS friendly) y reclutamiento de alto nivel.
 Adapta el perfil profesional del candidato para la siguiente oferta laboral:
@@ -131,7 +188,7 @@ Adapta el perfil profesional del candidato para la siguiente oferta laboral:
 Empresa: {datos_oferta.get('empresa', '')}
 Puesto: {datos_oferta.get('titulo_puesto', '')}
 Ubicación: {datos_oferta.get('ubicacion', '')}
-Idioma deseado: {"Inglés" if idioma == 'en' else "Español"}
+Idioma deseado: {"Inglés (US Standard)" if is_en else "Español"}
 Descripción de la Oferta:
 {datos_oferta.get('descripcion_oferta', '')[:4000]}
 
@@ -142,6 +199,8 @@ Credenciales y Licencias Clave: {credenciales_str}
 Resumen profesional base: {resumen_base_cand}
 Habilidades base: {', '.join(especialidad.get('habilidades_clave', []))}
 {bloque_cv_pdf}
+
+{instruccion_idioma}
 
 --- INSTRUCCIONES DE SALIDA ---
 Genera un objeto JSON EXACTO con las siguientes claves:
@@ -175,7 +234,7 @@ Responde ÚNICAMENTE el JSON válido, sin bloques ```json adicionales.
         return None
 
 def _generar_con_motor_local(datos_oferta: dict, perfil_base: dict, perfil_clave: str, idioma: str) -> dict:
-    """Motor de generación local 100% offline y determinista."""
+    """Motor de generación local 100% offline y determinista con soporte íntegro para inglés y español."""
     datos_p = perfil_base["datos_personales"]
     especialidad = perfil_base["perfiles_especializados"].get(perfil_clave, perfil_base["perfiles_especializados"]["automatizacion"])
 
@@ -198,7 +257,7 @@ Key qualifications aligned with your requirements include:
 2. OSHA 30-Hour Construction & Industrial Safety Certification (US #26-607426714).
 3. Immediate TN Visa eligibility (Engineer category under USMCA/T-MEC) with valid passport and clean record.
 4. Professional English proficiency (C1) and valid driver's license.
-5. Direct expertise in: {", ".join(especialidad.get("habilidades_clave", [])[:4])}.
+5. Direct expertise in: {", ".join(HABILIDADES_EN.get(perfil_clave, HABILIDADES_EN["automatizacion"])[:4])}.
 
 Attached to this email you will find my updated Resume (PDF) tailored to this position.
 
@@ -213,6 +272,8 @@ Email: {datos_p['email']}
 Location: {datos_p['ubicacion']}
 Credentials: Texas TDLR #702789 | OSHA 30 #26-607426714 | TN Visa Ready
 """
+        habilidades_finales = HABILIDADES_EN.get(perfil_clave, HABILIDADES_EN["automatizacion"])
+        logros_finales = LOGROS_EN
     else:
         resumen = especialidad.get("resumen_es")
         titulo_obj = f"{titulo_puesto} | Ing. Electrónica (Licencia Texas TDLR & OSHA 30)"
@@ -243,23 +304,25 @@ Correo: {datos_p['email']}
 Ubicación: {datos_p['ubicacion']}
 Credenciales: Licencia Texas TDLR #702789 | OSHA 30 Horas #26-607426714
 """
-
-    return {
-        "titulo_objetivo": titulo_obj,
-        "resumen_adaptado": resumen,
-        "habilidades_clave": especialidad.get("habilidades_clave", []),
-        "logros_experiencia": [
+        habilidades_finales = especialidad.get("habilidades_clave", [])
+        logros_finales = [
             "Ejecución rigurosa de comisionamiento, diagnóstico de fallas y pruebas funcionales.",
             "Cumplimiento normativo estricto bajo estándares de seguridad LOTO, JHA y OSHA.",
             "Gestión técnica orientada a cero paros no programados y alta confiabilidad de equipo.",
             "Elaboración de reportes técnicos detallados y comunicación directa con clientes y supervisores."
-        ],
+        ]
+
+    return {
+        "titulo_objetivo": titulo_obj,
+        "resumen_adaptado": resumen,
+        "habilidades_clave": habilidades_finales,
+        "logros_experiencia": logros_finales,
         "asunto_correo": asunto_correo,
         "cuerpo_correo": cuerpo_correo
     }
 
 def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: dict = None) -> str:
-    """Rellena la plantilla templates/cv_template.html respetando las opciones de visibilidad."""
+    """Rellena la plantilla templates/cv_template.html respetando las opciones de visibilidad e idioma (100% EN o 100% ES)."""
     template_path = config.TEMPLATES_DIR / "cv_template.html"
     with open(template_path, "r", encoding="utf-8") as f:
         html = f.read()
@@ -268,27 +331,43 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
     if opciones is None:
         opciones = perfil_base.get("opciones_visibilidad", {})
 
-    # Título Principal: Si usar_titulo_fijo es True, se usa el de datos_personales.
-    # Si es False (desmarcado), se usa el nombre del puesto/perfil de la postulación.
+    is_en = (idioma == "en")
+
+    # Etiquetas de encabezados según idioma
+    label_tel = "📞 Phone" if is_en else "📞 Tel"
+    label_email = "✉️ Email" if is_en else "✉️ Correo"
+    titulo_resumen = "Professional Summary" if is_en else "Perfil Profesional"
+    titulo_habilidades = "Core Technical Skills & Key Competencies" if is_en else "Habilidades & Competencias Técnicas Clave"
+    titulo_experiencia = "Relevant Professional Experience" if is_en else "Experiencia Profesional Relevante"
+    titulo_educacion = "Education & Academic Background" if is_en else "Educación & Formación Académica"
+    titulo_licencias = "Professional Certifications & Licenses" if is_en else "Certificaciones & Licencias Profesionales"
+
+    # Título Principal
     if opciones.get("usar_titulo_fijo", False):
         titulo_final = p_data.get("titulo_principal", "Especialista Técnico")
     else:
         titulo_final = datos_cv.get("titulo_objetivo", p_data.get("titulo_principal", "Especialista Técnico"))
 
-    # Resumen Profesional: Si usar_resumen_fijo es True, se muestra literalmente lo escrito ahí.
-    # Si es False (desmarcado), se genera y adapta acorde al perfil y la oferta.
+    # Resumen Profesional
     if opciones.get("usar_resumen_fijo", True):
-        resumen_final = perfil_base.get("resumen_base_fijo") or datos_cv.get("resumen_adaptado", "")
+        if is_en and not perfil_base.get("resumen_base_fijo_en"):
+            resumen_final = datos_cv.get("resumen_adaptado") or perfil_base.get("resumen_base_fijo", "")
+        else:
+            resumen_final = perfil_base.get("resumen_base_fijo") or datos_cv.get("resumen_adaptado", "")
     else:
         resumen_final = datos_cv.get("resumen_adaptado", "")
 
-    # Ubicación: Si mostrar_ubicacion es True, se muestra. Si es False, se omite.
+    # Ubicación
     if opciones.get("mostrar_ubicacion", True) and p_data.get("ubicacion"):
-        ubicacion_item = f'<div class="contact-item"><strong>📍 Ubicación:</strong> {p_data["ubicacion"]}</div>'
+        ubicacion_txt = p_data["ubicacion"]
+        if is_en:
+            ubicacion_txt = ubicacion_txt.replace("México", "Mexico").replace("Remoto", "Remote")
+        ubicacion_label = "📍 Location:" if is_en else "📍 Ubicación:"
+        ubicacion_item = f'<div class="contact-item"><strong>{ubicacion_label}</strong> {ubicacion_txt}</div>'
     else:
         ubicacion_item = ""
 
-    # GitHub: Si mostrar_github es True, se muestra. Si es False, se omite.
+    # GitHub
     if opciones.get("mostrar_github", True) and p_data.get("github"):
         github_item = f'<div class="contact-item"><strong>🌐 GitHub:</strong> {p_data["github"]}</div>'
     else:
@@ -299,25 +378,36 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
     if opciones.get("mostrar_licencias", True):
         badges_items.append("Texas TDLR Electrical License (#702789)")
         badges_items.append("OSHA 30-Hour Safety (#26-607426714)")
-    badges_items.append("B.S. Electronics Engineer")
+    badges_items.append("B.S. Electronics Engineer" if is_en else "Ingeniero en Electrónica")
 
-    # Disponibilidad: Si mostrar_disponibilidad es True, se muestra en los badges. Si es False, se omite.
     if opciones.get("mostrar_disponibilidad", True) and p_data.get("disponibilidad"):
-        badges_items.append("TN Visa Eligible" if idioma == "en" else "Elegible Visa TN")
-    badges_items.append("Bilingual (C1)" if idioma == "en" else "Bilingüe (C1)")
+        badges_items.append("TN Visa Eligible (US Work Authorized)" if is_en else "Elegible Visa TN (Permiso de Trabajo EE. UU.)")
+    badges_items.append("Bilingual (English C1 / Native Spanish)" if is_en else "Bilingüe (Inglés C1 / Español Nativo)")
 
     if badges_items:
         badges_str = " &bull; ".join(badges_items)
-        badges_bar = f'<div class="badges-bar"><strong>Credenciales Clave:</strong> {badges_str}</div>'
+        badges_label = "Key Credentials:" if is_en else "Credenciales Clave:"
+        badges_bar = f'<div class="badges-bar"><strong>{badges_label}</strong> {badges_str}</div>'
     else:
         badges_bar = ""
 
-    # Sección Licencias y Certificaciones: Si mostrar_licencias es True, se incluye.
-    # Si es False (desmarcado), se omite por completo del CV PDF.
+    # Sección Licencias y Certificaciones
     if opciones.get("mostrar_licencias", True) and perfil_base.get("credenciales_clave"):
-        cred_items = [f"<li>{cred}</li>" for cred in perfil_base.get("credenciales_clave", [])]
+        if is_en:
+            traducciones_cred = {
+                "Competente en Maniobras en Alturas y Certificado DC3": "Fall Protection Competent Person & DC3 Safety Certified (Heights)",
+                "Red Hat Certified System Administrator (RHCSA / RH199)": "Red Hat Certified System Administrator (RHCSA / RH199)",
+                "Certificaciones Mpirical en 5G (Acceso Wireless, C-RAN, Network Slicing, VoNR)": "Mpirical 5G Certifications (Wireless Access, C-RAN, Network Slicing, VoNR)",
+                "Certificaciones técnicas de fabricantes (Ericsson LTE, Huawei WCDMA RAN, NEC iPasolink)": "OEM Manufacturer Telecom Certifications (Ericsson LTE, Huawei WCDMA RAN, NEC iPasolink)",
+                "Electricista de Texas Licencia TDLR Id # 702789": "Active Texas TDLR Electrical License (#702789)",
+                "OSHA 30 Licencia 26-607426714": "OSHA 30-Hour Construction Safety Certification (#26-607426714)"
+            }
+            cred_items = [f"<li>{traducciones_cred.get(cred, cred)}</li>" for cred in perfil_base.get("credenciales_clave", [])]
+        else:
+            cred_items = [f"<li>{cred}</li>" for cred in perfil_base.get("credenciales_clave", [])]
+
         seccion_licencias = f"""
-<div class="section-title">Certificaciones & Licencias Profesionales</div>
+<div class="section-title">{titulo_licencias}</div>
 <ul class="credentials-list">
     {''.join(cred_items)}
 </ul>
@@ -330,14 +420,17 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
 
     # Experiencia profesional
     logros_list = "".join([f'<li>{l}</li>' for l in datos_cv.get("logros_experiencia", [])])
+    empresa_exp = "Field Engineering & Industrial Projects" if is_en else "Experiencia en Campo & Proyectos Industriales"
+    meta_exp = "2018 - Present | US & Mexico" if is_en else "2018 - Presente | México & EE. UU."
+
     experiencia_html = f"""
     <div class="job-block">
         <div class="job-header">
             <div>
                 <span class="job-title">{titulo_final}</span> &bull; 
-                <span class="job-company">Experiencia en Campo & Proyectos Industriales</span>
+                <span class="job-company">{empresa_exp}</span>
             </div>
-            <div class="job-meta">2018 - Presente | México & EE. UU.</div>
+            <div class="job-meta">{meta_exp}</div>
         </div>
         <ul class="bullet-list">
             {logros_list}
@@ -348,12 +441,38 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
     # Educación
     edu_items = []
     for edu in perfil_base.get("educacion", []):
-        edu_items.append(f"""
-        <div class="edu-block">
-            <div><span class="edu-degree">{edu['grado']}</span> - <span class="edu-school">{edu['institucion']} ({edu['especialidad']})</span></div>
-            <div class="edu-period">{edu['periodo']}</div>
-        </div>
-        """)
+        grado = edu.get("grado", "")
+        esp = edu.get("especialidad", "")
+        inst = edu.get("institucion", "")
+        periodo = edu.get("periodo", "")
+
+        if is_en:
+            if "Maestría" in grado or "MBA" in grado:
+                grado_en = "Master of Business Administration (MBA)"
+                esp_en = "Business Administration & Management"
+            elif "Ingeniería" in grado:
+                grado_en = "Bachelor of Science in Electronics Engineering"
+                esp_en = "Electronics Engineering"
+            elif "Técnico" in grado:
+                grado_en = "Technical Diploma / Associate in Electronics"
+                esp_en = "Electronics & Automation"
+            else:
+                grado_en = grado
+                esp_en = esp
+
+            edu_items.append(f"""
+            <div class="edu-block">
+                <div><span class="edu-degree">{grado_en}</span> - <span class="edu-school">{inst} ({esp_en})</span></div>
+                <div class="edu-period">{periodo}</div>
+            </div>
+            """)
+        else:
+            edu_items.append(f"""
+            <div class="edu-block">
+                <div><span class="edu-degree">{grado}</span> - <span class="edu-school">{inst} ({esp})</span></div>
+                <div class="edu-period">{periodo}</div>
+            </div>
+            """)
     educacion_html = "".join(edu_items)
 
     # Reemplazar variables
@@ -361,14 +480,20 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
         "{{LANG}}": idioma,
         "{{NOMBRE}}": p_data["nombre"],
         "{{TITULO}}": titulo_final,
+        "{{LABEL_TEL}}": label_tel,
         "{{TELEFONO}}": p_data["telefono"],
+        "{{LABEL_EMAIL}}": label_email,
         "{{EMAIL}}": p_data["email"],
         "{{UBICACION_ITEM}}": ubicacion_item,
         "{{GITHUB_ITEM}}": github_item,
         "{{BADGES_BAR}}": badges_bar,
+        "{{TITULO_RESUMEN}}": titulo_resumen,
         "{{RESUMEN}}": resumen_final,
+        "{{TITULO_HABILIDADES}}": titulo_habilidades,
         "{{HABILIDADES_HTML}}": habilidades_html,
+        "{{TITULO_EXPERIENCIA}}": titulo_experiencia,
         "{{EXPERIENCIA_HTML}}": experiencia_html,
+        "{{TITULO_EDUCACION}}": titulo_educacion,
         "{{EDUCACION_HTML}}": educacion_html,
         "{{SECCION_LICENCIAS}}": seccion_licencias
     }

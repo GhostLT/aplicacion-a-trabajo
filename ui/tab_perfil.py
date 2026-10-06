@@ -41,6 +41,7 @@ class TabPerfil(ttk.Frame):
         self.var_mostrar_disponibilidad = tk.BooleanVar(value=opc.get("mostrar_disponibilidad", True))
         self.var_mostrar_licencias = tk.BooleanVar(value=opc.get("mostrar_licencias", True))
         self.var_usar_resumen_fijo = tk.BooleanVar(value=opc.get("usar_resumen_fijo", True))
+        self.var_idioma_default = tk.StringVar(value=opc.get("idioma_predeterminado", "auto"))
 
         # 0. SECCIÓN DESTACADA: SUBIR CV BASE EN PDF
         pdf_box = ttk.LabelFrame(scrollable_frame, text=" 📄 Cargar CV Base en PDF (Importar Perfil Automáticamente) ", padding=10)
@@ -227,6 +228,36 @@ class TabPerfil(ttk.Frame):
         self.txt_resumen.pack(fill=tk.X)
         self.txt_resumen.insert("1.0", resumen_guardado)
 
+        # 4. IDIOMA PREDETERMINADO DEL CV PDF
+        lang_box = ttk.LabelFrame(scrollable_frame, text=" 🌐 Idioma Predeterminado del CV PDF ", padding=10)
+        lang_box.pack(fill=tk.X, pady=(0, 10))
+
+        lang_row = ttk.Frame(lang_box)
+        lang_row.pack(fill=tk.X)
+
+        ttk.Label(lang_row, text="Generar por defecto en:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT, padx=(0, 10))
+
+        ttk.Radiobutton(
+            lang_row,
+            text="🇲🇽 100% Español",
+            value="es",
+            variable=self.var_idioma_default
+        ).pack(side=tk.LEFT, padx=(0, 10))
+
+        ttk.Radiobutton(
+            lang_row,
+            text="🇺🇸 100% Inglés (English)",
+            value="en",
+            variable=self.var_idioma_default
+        ).pack(side=tk.LEFT, padx=(0, 10))
+
+        ttk.Radiobutton(
+            lang_row,
+            text="🤖 Auto-detectar según la vacante",
+            value="auto",
+            variable=self.var_idioma_default
+        ).pack(side=tk.LEFT)
+
         # BOTÓN GUARDAR PERFIL
         btn_frame = ttk.Frame(scrollable_frame)
         btn_frame.pack(fill=tk.X, pady=10)
@@ -269,7 +300,8 @@ class TabPerfil(ttk.Frame):
                 "mostrar_github": self.var_mostrar_github.get(),
                 "mostrar_disponibilidad": self.var_mostrar_disponibilidad.get(),
                 "mostrar_licencias": self.var_mostrar_licencias.get(),
-                "usar_resumen_fijo": self.var_usar_resumen_fijo.get()
+                "usar_resumen_fijo": self.var_usar_resumen_fijo.get(),
+                "idioma_predeterminado": self.var_idioma_default.get()
             }
 
             profile_data.save_user_profile(self.perfil)
@@ -428,6 +460,15 @@ class TabPerfil(ttk.Frame):
 
         self.txt_resumen.delete("1.0", tk.END)
         self.txt_resumen.insert("1.0", perfil.get("resumen_base_fijo", ""))
+
+        opc = perfil.get("opciones_visibilidad", {})
+        self.var_usar_titulo_fijo.set(opc.get("usar_titulo_fijo", False))
+        self.var_mostrar_ubicacion.set(opc.get("mostrar_ubicacion", True))
+        self.var_mostrar_github.set(opc.get("mostrar_github", True))
+        self.var_mostrar_disponibilidad.set(opc.get("mostrar_disponibilidad", True))
+        self.var_mostrar_licencias.set(opc.get("mostrar_licencias", True))
+        self.var_usar_resumen_fijo.set(opc.get("usar_resumen_fijo", True))
+        self.var_idioma_default.set(opc.get("idioma_predeterminado", "auto"))
 
     def _abrir_pdf_base(self):
         if self.ruta_pdf_cv_base and os.path.exists(self.ruta_pdf_cv_base):

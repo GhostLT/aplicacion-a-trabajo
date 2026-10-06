@@ -67,6 +67,7 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
    - **Ubicación:** Opción para mostrar u **omitir la ubicación** del encabezado del documento.
    - **Perfil de GitHub:** Opción para mostrar u **omitir el enlace de GitHub** en el CV PDF.
    - **Disponibilidad:** Opción para mostrar u **omitir el estatus de disponibilidad / Visa TN** en los distintivos del encabezado.
+   - **🌐 Selección de Idioma Completo (100% Inglés o 100% Español):** Selector dedicado con botones de opción (`🇲🇽 100% Español`, `🇺🇸 100% Inglés`, `🤖 Auto`) para elegir si el CV PDF se crea íntegramente en un idioma sin mezclas. Traduce todos los encabezados de sección (*Professional Summary*, *Core Technical Skills*, *Relevant Professional Experience*, *Education & Academic Background*, *Professional Certifications & Licenses*), etiquetas de contacto (*Location*, *Email*, *Phone*), distintivos de credenciales (*Key Credentials*, *TN Visa Eligible*), grados universitarios y proyectos en campo.
    - *Estas opciones se guardan de forma permanente en `user_profile.json` desde la pestaña **Mi Perfil Base** y también se pueden ajustar al instante para cada vacante desde la pestaña **Nueva Postulación**.*
 
 8. **🔄 Flujo Continuo de Nuevas Postulaciones (Sin Reiniciar la Aplicación):**

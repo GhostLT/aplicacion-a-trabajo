@@ -102,6 +102,7 @@ class TabNuevaPostulacion(ttk.Frame):
         self.combo_idioma = ttk.Combobox(grid_frame, values=list(self.idiomas_map.keys()), state="readonly")
         self.combo_idioma.current(0)
         self.combo_idioma.grid(row=5, column=1, sticky=tk.EW, pady=3, padx=(5, 0))
+        self.combo_idioma.bind("<<ComboboxSelected>>", self._on_combo_idioma_changed)
 
         grid_frame.columnconfigure(1, weight=1)
 
@@ -182,6 +183,38 @@ class TabNuevaPostulacion(ttk.Frame):
 
         self.var_opt_titulo = tk.BooleanVar(value=opc_init.get("usar_titulo_fijo", False))
         ttk.Checkbutton(row2, text="Título Fijo (desmarcar para usar puesto de vacante)", variable=self.var_opt_titulo).pack(side=tk.LEFT)
+
+        # Fila 3: Selector explícito de idioma (100% Inglés, 100% Español, Auto)
+        row_lang = ttk.Frame(opts_frame)
+        row_lang.pack(fill=tk.X, pady=(3, 1))
+
+        ttk.Label(row_lang, text="🌐 Idioma del CV:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT, padx=(0, 6))
+
+        self.var_idioma_seleccion = tk.StringVar(value=opc_init.get("idioma_predeterminado", "auto"))
+
+        ttk.Radiobutton(
+            row_lang,
+            text="🇲🇽 100% Español",
+            value="es",
+            variable=self.var_idioma_seleccion,
+            command=self._on_idioma_radio_changed
+        ).pack(side=tk.LEFT, padx=(0, 8))
+
+        ttk.Radiobutton(
+            row_lang,
+            text="🇺🇸 100% Inglés (English)",
+            value="en",
+            variable=self.var_idioma_seleccion,
+            command=self._on_idioma_radio_changed
+        ).pack(side=tk.LEFT, padx=(0, 8))
+
+        ttk.Radiobutton(
+            row_lang,
+            text="🤖 Auto",
+            value="auto",
+            variable=self.var_idioma_seleccion,
+            command=self._on_idioma_radio_changed
+        ).pack(side=tk.LEFT)
 
         # Sección Destacada: Generar CV PDF
         acciones_frame = ttk.LabelFrame(frame_izq, text=" 🚀 Generación de CV PDF ", padding=8)
@@ -402,6 +435,16 @@ class TabNuevaPostulacion(ttk.Frame):
         finally:
             self.after(80, self._verificar_cola_tareas)
 
+    def _on_combo_idioma_changed(self, event=None):
+        val = self.idiomas_map.get(self.combo_idioma.get(), "auto")
+        self.var_idioma_seleccion.set(val)
+
+    def _on_idioma_radio_changed(self):
+        val = self.var_idioma_seleccion.get()
+        reverse_map = {v: k for k, v in self.idiomas_map.items()}
+        nombre_combo = reverse_map.get(val, "Auto-detectar (según la vacante)")
+        self.combo_idioma.set(nombre_combo)
+
     def _recolectar_datos_oferta_ui(self):
         """Recolecta de forma segura todos los datos de los widgets en el hilo principal."""
         empresa = self.entry_empresa.get().strip() or "Empresa Confidencial"
@@ -410,6 +453,10 @@ class TabNuevaPostulacion(ttk.Frame):
         if not desc:
             desc = f"Postulación para el puesto de {puesto} en {empresa}."
 
+        idioma_elegido = self.var_idioma_seleccion.get()
+        if not idioma_elegido or idioma_elegido not in ["es", "en", "auto"]:
+            idioma_elegido = self.idiomas_map.get(self.combo_idioma.get(), "auto")
+
         return {
             "empresa": empresa,
             "titulo_puesto": puesto,
@@ -417,14 +464,15 @@ class TabNuevaPostulacion(ttk.Frame):
             "url_oferta": self.entry_url.get().strip(),
             "descripcion_oferta": desc,
             "perfil_aplicado": self.perfiles_map[self.combo_perfil.get()],
-            "idioma": self.idiomas_map[self.combo_idioma.get()],
+            "idioma": idioma_elegido,
             "opciones_visibilidad": {
                 "mostrar_ubicacion": self.var_opt_ubicacion.get(),
                 "mostrar_github": self.var_opt_github.get(),
                 "mostrar_disponibilidad": self.var_opt_disp.get(),
                 "mostrar_licencias": self.var_opt_licencias.get(),
                 "usar_resumen_fijo": self.var_opt_resumen.get(),
-                "usar_titulo_fijo": self.var_opt_titulo.get()
+                "usar_titulo_fijo": self.var_opt_titulo.get(),
+                "idioma_predeterminado": idioma_elegido
             }
         }
 
@@ -477,7 +525,7 @@ class TabNuevaPostulacion(ttk.Frame):
         t.start()
 
     def sincronizar_con_perfil(self):
-        """Actualiza los valores de los checkboxes según lo guardado en user_profile.json."""
+        """Actualiza los valores de los checkboxes y selector de idioma según lo guardado en user_profile.json."""
         p = profile_data.load_user_profile()
         opc = p.get("opciones_visibilidad", {})
         self.var_opt_ubicacion.set(opc.get("mostrar_ubicacion", True))
@@ -486,6 +534,12 @@ class TabNuevaPostulacion(ttk.Frame):
         self.var_opt_licencias.set(opc.get("mostrar_licencias", True))
         self.var_opt_resumen.set(opc.get("usar_resumen_fijo", True))
         self.var_opt_titulo.set(opc.get("usar_titulo_fijo", False))
+
+        # Sincronizar idioma preferido
+        id_pref = opc.get("idioma_predeterminado", "auto")
+        self.var_idioma_seleccion.set(id_pref)
+        reverse_map = {v: k for k, v in self.idiomas_map.items()}
+        self.combo_idioma.set(reverse_map.get(id_pref, "Auto-detectar (según la vacante)"))
 
     def _generar_cv_worker(self, datos_oferta, usar_ia, callback_extra=None):
         """Worker en hilo secundario. 100% libre de llamadas a Tkinter."""

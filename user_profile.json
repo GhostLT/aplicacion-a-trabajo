@@ -174,7 +174,8 @@
     "mostrar_github": true,
     "mostrar_disponibilidad": true,
     "mostrar_licencias": true,
-    "usar_resumen_fijo": true
+    "usar_resumen_fijo": true,
+    "idioma_predeterminado": "auto"
   },
   "resumen_base_fijo": "Ingeniero en Telecomunicaciones con más de una década de experiencia especializada en telecomunicaciones, optimización de redes móviles (3G, 4G LTE, VoLTE y 5G), soporte de radiofrecuencia (RF) e ingeniería de campo RAN. Con sólida trayectoria en empresas líderes como AT&T, Nextel y Nokia, destacando en el monitoreo de KPIs, resolución de problemas (troubleshooting), automatización de procesos mediante Python y JavaScript, y gestión de proyectos de infraestructura.",
   "ruta_cv_base_pdf": "C:\\proyectos\\aplicacion a trabajo\\uploads\\cv_base\\Esp CV Javier Huesca.pdf",

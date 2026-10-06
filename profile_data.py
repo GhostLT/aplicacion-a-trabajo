@@ -20,7 +20,8 @@ DEFAULT_PROFILE = {
         "mostrar_github": True,            # True: muestra GitHub en el PDF; False: se omite
         "mostrar_disponibilidad": True,    # True: muestra disponibilidad en el PDF; False: se omite
         "mostrar_licencias": True,         # True: incluye la sección de licencias; False: se omite en el PDF
-        "usar_resumen_fijo": True          # True: usa por defecto lo escrito en resumen base; False: lo crea acorde al perfil
+        "usar_resumen_fijo": True,         # True: usa por defecto lo escrito en resumen base; False: lo crea acorde al perfil
+        "idioma_predeterminado": "auto"    # "auto": según vacante, "es": 100% Español, "en": 100% Inglés
     },
     "ruta_cv_base_pdf": "",
     "texto_cv_base_extraido": "",
