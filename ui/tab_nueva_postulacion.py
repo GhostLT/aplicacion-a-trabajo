@@ -23,9 +23,34 @@ class TabNuevaPostulacion(ttk.Frame):
         self._verificar_cola_tareas()
 
     def _crear_interfaz(self):
+        # Contenedor con Scrollbar vertical para pantallas de cualquier resolución
+        self.canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
+
+        self.canvas_window_id = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        self.canvas.bind(
+            "<Configure>",
+            lambda e: self.canvas.itemconfig(self.canvas_window_id, width=e.width)
+        )
+
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Soporte para rueda del ratón (MouseWheel)
+        self.bind("<Enter>", lambda e: self._bind_mousewheel())
+        self.bind("<Leave>", lambda e: self._unbind_mousewheel())
+
         # Contenedor principal con dos columnas (PanedWindow para redimensionar)
-        paned = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
-        paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        paned = ttk.PanedWindow(self.scrollable_frame, orient=tk.HORIZONTAL)
+        paned.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
 
         # Columna Izquierda: Entradas de la oferta
         frame_izq = ttk.LabelFrame(paned, text=" 📋 1. Datos de la Oferta Laboral ", padding=10)
@@ -168,8 +193,8 @@ class TabNuevaPostulacion(ttk.Frame):
 
         # Pegar descripción de la oferta
         ttk.Label(frame_izq, text="Descripción completa de la vacante (extraída de la imagen o pegada manualmente):", font=("Segoe UI", 8, "italic")).pack(anchor=tk.W, pady=(4, 2))
-        self.txt_oferta = scrolledtext.ScrolledText(frame_izq, height=11, wrap=tk.WORD, font=("Consolas", 9))
-        self.txt_oferta.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
+        self.txt_oferta = scrolledtext.ScrolledText(frame_izq, height=9, wrap=tk.WORD, font=("Consolas", 9))
+        self.txt_oferta.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
 
         # Opciones de personalización del CV PDF para esta postulación
         p_init = profile_data.load_user_profile()
@@ -386,7 +411,7 @@ class TabNuevaPostulacion(ttk.Frame):
 
         # Cuerpo del correo
         ttk.Label(self.tab_correo, text="Cuerpo del Correo (Listo para enviar):", font=("Segoe UI", 9, "bold")).pack(anchor=tk.W, pady=(4, 2))
-        self.txt_correo = scrolledtext.ScrolledText(self.tab_correo, height=12, wrap=tk.WORD, font=("Segoe UI", 9))
+        self.txt_correo = scrolledtext.ScrolledText(self.tab_correo, height=10, wrap=tk.WORD, font=("Segoe UI", 9))
         self.txt_correo.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
 
         # Botones de acción del correo
@@ -471,6 +496,20 @@ class TabNuevaPostulacion(ttk.Frame):
             print(f"Error procesando cola de tareas: {e}")
         finally:
             self.after(80, self._verificar_cola_tareas)
+
+    def _bind_mousewheel(self):
+        self.bind_all("<MouseWheel>", self._on_mousewheel)
+
+    def _unbind_mousewheel(self):
+        self.unbind_all("<MouseWheel>")
+
+    def _on_mousewheel(self, event):
+        widget = event.widget
+        # Si el cursor está sobre un cuadro de texto ScrolledText (vacante o correo), permitir que haga su scroll propio
+        if isinstance(widget, (tk.Text, scrolledtext.ScrolledText)) or "text" in str(type(widget)).lower():
+            return
+        # Desplazamiento fluido en el Canvas principal
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)) * 2, "units")
 
     def _on_check_ingles_changed(self):
         es_ingles = self.var_en_ingles.get()

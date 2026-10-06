@@ -25,11 +25,25 @@ class TabPerfil(ttk.Frame):
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas_window_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.bind(
+            "<Configure>",
+            lambda e: canvas.itemconfig(canvas_window_id, width=e.width)
+        )
 
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+
+        def _on_mousewheel(event):
+            widget = event.widget
+            if isinstance(widget, (tk.Text, scrolledtext.ScrolledText)) or "text" in str(type(widget)).lower():
+                return
+            canvas.yview_scroll(int(-1 * (event.delta / 120)) * 2, "units")
+
+        self.bind("<Enter>", lambda e: self.bind_all("<MouseWheel>", _on_mousewheel))
+        self.bind("<Leave>", lambda e: self.unbind_all("<MouseWheel>"))
 
         p = self.perfil.get("datos_personales", {})
         opc = self.perfil.get("opciones_visibilidad", {})

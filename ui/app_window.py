@@ -11,8 +11,12 @@ class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("PostulaPro - Generador de CVs ATS & Gestor de Postulaciones")
-        self.geometry("1180x760")
-        self.minsize(980, 640)
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        w = min(1180, max(850, screen_w - 40))
+        h = min(760, max(520, screen_h - 80))
+        self.geometry(f"{w}x{h}")
+        self.minsize(850, 480)
 
         # Configuración visual
         self._configurar_estilos()

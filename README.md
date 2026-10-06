@@ -82,6 +82,12 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
    - **Alimentación de Nuevos CVs:** El texto y datos extraídos se guardan en `user_profile.json` y se inyectan automáticamente en el motor generador para crear los CVs en PDF descargables adaptados a las vacantes de forma 100% fidedigna a tu experiencia real.
    - **Controles Intuitivos:** Botón **`📁 Seleccionar CV PDF...`**, botón naranja destacado **`✨ Extraer y Cargar Perfil desde PDF`**, visor rápido **`👁️ Ver PDF`** y opción para desvincular con **`❌ Quitar`**.
 
+10. **📜 Scroll Vertical Completo y Soporte de Rueda del Ratón (MouseWheel):**
+   - **Navegación Fluida y Adaptable:** Incorporación de un contenedor `tk.Canvas` con `ttk.Scrollbar` vertical reactivo en la ventana principal de **Nueva Postulación** y en **Mi Perfil Base**.
+   - **Acceso Total a Todos los Campos:** Permite desplazarse fácilmente hacia abajo en cualquier tamaño de pantalla o resolución (e.g. laptops 1366x768, pantallas con escala DPI del 125% o 150%) para seleccionar cómodamente los checkboxes inferiores (Maestría/MBA, En inglés, Resumen, Título, etc.) y los botones de acción principales ("📄 Generar CV PDF", "💾 Guardar en MariaDB").
+   - **Desplazamiento Inteligente con Rueda del Ratón:** Al posicionar el cursor sobre el formulario se activa el scroll vertical con la rueda del ratón (`<MouseWheel>`). Si el cursor se sitúa dentro de las cajas de texto de descripción o correo, respeta el scroll interno del texto sin interferencias.
+   - **Dimensionamiento Dinámico:** Detección de la resolución de pantalla al iniciar la aplicación para ajustar las dimensiones de la ventana y dimensiones mínimas adaptativas.
+
 ---
 
 ## 🏗️ Arquitectura del Proyecto
