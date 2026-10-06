@@ -1,4 +1,5 @@
 import os
+import queue
 import threading
 import urllib.parse
 import tkinter as tk
@@ -16,8 +17,10 @@ class TabNuevaPostulacion(ttk.Frame):
         self.on_guardado_callback = on_guardado_callback
         self.resultado_actual = None
         self.ruta_imagen_actual = None
+        self._cola_tareas = queue.Queue()
 
         self._crear_interfaz()
+        self._verificar_cola_tareas()
 
     def _crear_interfaz(self):
         # Contenedor principal con dos columnas (PanedWindow para redimensionar)
@@ -376,19 +379,81 @@ class TabNuevaPostulacion(ttk.Frame):
         self.entry_notas.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
         self.entry_notas.insert(0, "Postulación generada desde el sistema.")
 
-    def _iniciar_generacion_thread(self):
+    def _verificar_cola_tareas(self):
+        """Revisa la cola de tareas en el hilo principal de Tkinter."""
+        try:
+            while not self._cola_tareas.empty():
+                msg = self._cola_tareas.get_nowait()
+                m_type = msg.get("tipo")
+                if m_type == "resultado_generacion":
+                    resultado = msg.get("resultado")
+                    self._mostrar_resultados(resultado)
+                    cb = msg.get("callback_extra")
+                    if cb:
+                        cb()
+                elif m_type == "error_generacion":
+                    self._manejar_error(msg.get("error", "Error desconocido"))
+                elif m_type == "resultado_imagen":
+                    self._aplicar_datos_extraidos_imagen(msg.get("datos", {}))
+                elif m_type == "error_imagen":
+                    self._manejar_error_extraccion_imagen(msg.get("error", "Error desconocido"))
+        except Exception as e:
+            print(f"Error procesando cola de tareas: {e}")
+        finally:
+            self.after(80, self._verificar_cola_tareas)
+
+    def _recolectar_datos_oferta_ui(self):
+        """Recolecta de forma segura todos los datos de los widgets en el hilo principal."""
+        empresa = self.entry_empresa.get().strip() or "Empresa Confidencial"
+        puesto = self.entry_puesto.get().strip() or "Especialista Técnico"
         desc = self.txt_oferta.get("1.0", tk.END).strip()
         if not desc:
-            resp = messagebox.askyesno(
-                "Generar CV PDF",
-                "No has ingresado la descripción de una vacante específica.\n\n¿Deseas generar el CV PDF profesional con los datos base de tu perfil seleccionado?"
-            )
-            if resp:
-                desc = "Perfil profesional general y trayectoria técnica de Javier Viveros Huesca."
-                self.txt_oferta.insert("1.0", desc)
-            else:
-                self.txt_oferta.focus_set()
-                return
+            desc = f"Postulación para el puesto de {puesto} en {empresa}."
+
+        return {
+            "empresa": empresa,
+            "titulo_puesto": puesto,
+            "ubicacion": self.entry_ubicacion.get().strip(),
+            "url_oferta": self.entry_url.get().strip(),
+            "descripcion_oferta": desc,
+            "perfil_aplicado": self.perfiles_map[self.combo_perfil.get()],
+            "idioma": self.idiomas_map[self.combo_idioma.get()],
+            "opciones_visibilidad": {
+                "mostrar_ubicacion": self.var_opt_ubicacion.get(),
+                "mostrar_github": self.var_opt_github.get(),
+                "mostrar_disponibilidad": self.var_opt_disp.get(),
+                "mostrar_licencias": self.var_opt_licencias.get(),
+                "usar_resumen_fijo": self.var_opt_resumen.get(),
+                "usar_titulo_fijo": self.var_opt_titulo.get()
+            }
+        }
+
+    def _iniciar_generacion_thread(self):
+        empresa = self.entry_empresa.get().strip()
+        puesto = self.entry_puesto.get().strip()
+        desc = self.txt_oferta.get("1.0", tk.END).strip()
+
+        if not desc:
+            if self.ruta_imagen_actual:
+                resp_img = messagebox.askyesno(
+                    "Imagen detectada",
+                    "Tienes una imagen de la oferta cargada. ¿Deseas analizar la imagen primero para extraer los datos de la vacante?"
+                )
+                if resp_img:
+                    self._iniciar_extraccion_imagen_thread()
+                    return
+
+            if not empresa and not puesto:
+                resp = messagebox.askyesno(
+                    "Generar CV PDF",
+                    "No has ingresado la descripción ni datos de una vacante específica.\n\n¿Deseas generar el CV PDF profesional con los datos base de tu perfil seleccionado?"
+                )
+                if resp:
+                    desc = "Perfil profesional general y trayectoria técnica de Javier Viveros Huesca."
+                    self.txt_oferta.insert("1.0", desc)
+                else:
+                    self.txt_oferta.focus_set()
+                    return
 
         self.btn_generar.config(state=tk.DISABLED)
         self.btn_generar_descargar.config(state=tk.DISABLED)
@@ -396,10 +461,19 @@ class TabNuevaPostulacion(ttk.Frame):
             self.btn_generar_cv_pdf_tab.config(state=tk.DISABLED)
 
         self.lbl_status.config(text="Procesando oferta, adaptando perfil y renderizando PDF...", foreground="#1d4ed8")
+        if hasattr(self, "lbl_pdf_ruta"):
+            self.lbl_pdf_ruta.config(text="⏳ Generando documento CV PDF...")
         self.prog_bar.pack(fill=tk.X, pady=(2, 6))
         self.prog_bar.start(10)
 
-        t = threading.Thread(target=self._generar_cv_proceso, daemon=True)
+        datos_oferta = self._recolectar_datos_oferta_ui()
+        usar_ia = self.var_usar_ia.get()
+
+        t = threading.Thread(
+            target=self._generar_cv_worker,
+            args=(datos_oferta, usar_ia),
+            daemon=True
+        )
         t.start()
 
     def sincronizar_con_perfil(self):
@@ -413,33 +487,20 @@ class TabNuevaPostulacion(ttk.Frame):
         self.var_opt_resumen.set(opc.get("usar_resumen_fijo", True))
         self.var_opt_titulo.set(opc.get("usar_titulo_fijo", False))
 
-    def _generar_cv_proceso(self):
+    def _generar_cv_worker(self, datos_oferta, usar_ia, callback_extra=None):
+        """Worker en hilo secundario. 100% libre de llamadas a Tkinter."""
         try:
-            datos_oferta = {
-                "empresa": self.entry_empresa.get().strip() or "Empresa Confidencial",
-                "titulo_puesto": self.entry_puesto.get().strip() or "Especialista Técnico",
-                "ubicacion": self.entry_ubicacion.get().strip(),
-                "url_oferta": self.entry_url.get().strip(),
-                "descripcion_oferta": self.txt_oferta.get("1.0", tk.END).strip(),
-                "perfil_aplicado": self.perfiles_map[self.combo_perfil.get()],
-                "idioma": self.idiomas_map[self.combo_idioma.get()],
-                "opciones_visibilidad": {
-                    "mostrar_ubicacion": self.var_opt_ubicacion.get(),
-                    "mostrar_github": self.var_opt_github.get(),
-                    "mostrar_disponibilidad": self.var_opt_disp.get(),
-                    "mostrar_licencias": self.var_opt_licencias.get(),
-                    "usar_resumen_fijo": self.var_opt_resumen.get(),
-                    "usar_titulo_fijo": self.var_opt_titulo.get()
-                }
-            }
-
-            usar_ia = self.var_usar_ia.get()
             resultado = generator.procesar_postulacion_completa(datos_oferta, usar_ia=usar_ia)
-
-            # Actualizar GUI en el hilo principal
-            self.after(0, lambda: self._mostrar_resultados(resultado))
+            self._cola_tareas.put({
+                "tipo": "resultado_generacion",
+                "resultado": resultado,
+                "callback_extra": callback_extra
+            })
         except Exception as e:
-            self.after(0, lambda: self._manejar_error(str(e)))
+            self._cola_tareas.put({
+                "tipo": "error_generacion",
+                "error": str(e)
+            })
 
     def limpiar_para_nueva_postulacion(self):
         """Limpia todos los campos, textos, imágenes y estados para iniciar una nueva postulación desde cero."""
@@ -466,6 +527,12 @@ class TabNuevaPostulacion(ttk.Frame):
         self.btn_abrir_pdf.config(state=tk.DISABLED)
         self.btn_guardar_bd.config(state=tk.DISABLED)
 
+        # Reactivar explícitamente los botones de generación
+        self.btn_generar.config(state=tk.NORMAL)
+        self.btn_generar_descargar.config(state=tk.NORMAL)
+        if hasattr(self, "btn_generar_cv_pdf_tab"):
+            self.btn_generar_cv_pdf_tab.config(state=tk.NORMAL)
+
         self.entry_notas.delete(0, tk.END)
         self.entry_notas.insert(0, "Postulación generada desde el sistema.")
         self.combo_fase_inicial.current(1)
@@ -478,74 +545,56 @@ class TabNuevaPostulacion(ttk.Frame):
 
     def _generar_y_descargar_directo(self):
         """Genera el CV PDF alimentado con los datos de la postulación y abre inmediatamente el diálogo para descargarlo."""
-        desc = self.txt_oferta.get("1.0", tk.END).strip()
-        if not desc:
-            resp = messagebox.askyesno(
-                "Generar y Descargar CV PDF",
-                "No has ingresado la descripción de una vacante específica.\n\n¿Deseas generar y descargar el CV PDF profesional con los datos base de tu perfil seleccionado?"
-            )
-            if resp:
-                desc = "Perfil profesional general y trayectoria técnica de Javier Viveros Huesca."
-                self.txt_oferta.insert("1.0", desc)
-            else:
-                self.txt_oferta.focus_set()
-                return
-
-        # Si ya está generado el resultado actual, descargar directamente
         if self.resultado_actual and self.resultado_actual.get("ruta_pdf"):
             self._descargar_pdf()
             return
 
-        # Si aún no está generado, generar en hilo y luego descargar
+        empresa = self.entry_empresa.get().strip()
+        puesto = self.entry_puesto.get().strip()
+        desc = self.txt_oferta.get("1.0", tk.END).strip()
+
+        if not desc:
+            if self.ruta_imagen_actual:
+                resp_img = messagebox.askyesno(
+                    "Imagen detectada",
+                    "Tienes una imagen de la oferta cargada. ¿Deseas analizar la imagen primero para extraer los datos de la vacante?"
+                )
+                if resp_img:
+                    self._iniciar_extraccion_imagen_thread()
+                    return
+
+            if not empresa and not puesto:
+                resp = messagebox.askyesno(
+                    "Generar y Descargar CV PDF",
+                    "No has ingresado la descripción ni datos de una vacante específica.\n\n¿Deseas generar y descargar el CV PDF profesional con los datos base de tu perfil seleccionado?"
+                )
+                if resp:
+                    desc = "Perfil profesional general y trayectoria técnica de Javier Viveros Huesca."
+                    self.txt_oferta.insert("1.0", desc)
+                else:
+                    self.txt_oferta.focus_set()
+                    return
+
         self.btn_generar.config(state=tk.DISABLED)
         self.btn_generar_descargar.config(state=tk.DISABLED)
         if hasattr(self, "btn_generar_cv_pdf_tab"):
             self.btn_generar_cv_pdf_tab.config(state=tk.DISABLED)
 
         self.lbl_status.config(text="Generando CV PDF alimentado con los datos de la vacante...", foreground="#0f766e")
+        if hasattr(self, "lbl_pdf_ruta"):
+            self.lbl_pdf_ruta.config(text="⏳ Generando documento CV PDF...")
         self.prog_bar.pack(fill=tk.X, pady=(2, 6))
         self.prog_bar.start(10)
 
-        t = threading.Thread(target=self._generar_cv_proceso_y_descargar, daemon=True)
+        datos_oferta = self._recolectar_datos_oferta_ui()
+        usar_ia = self.var_usar_ia.get()
+
+        t = threading.Thread(
+            target=self._generar_cv_worker,
+            args=(datos_oferta, usar_ia, self._descargar_pdf),
+            daemon=True
+        )
         t.start()
-
-    def _generar_cv_proceso_y_descargar(self):
-        try:
-            datos_oferta = {
-                "empresa": self.entry_empresa.get().strip() or "Empresa Confidencial",
-                "titulo_puesto": self.entry_puesto.get().strip() or "Especialista Técnico",
-                "ubicacion": self.entry_ubicacion.get().strip(),
-                "url_oferta": self.entry_url.get().strip(),
-                "descripcion_oferta": self.txt_oferta.get("1.0", tk.END).strip(),
-                "perfil_aplicado": self.perfiles_map[self.combo_perfil.get()],
-                "idioma": self.idiomas_map[self.combo_idioma.get()],
-                "opciones_visibilidad": {
-                    "mostrar_ubicacion": self.var_opt_ubicacion.get(),
-                    "mostrar_github": self.var_opt_github.get(),
-                    "mostrar_disponibilidad": self.var_opt_disp.get(),
-                    "mostrar_licencias": self.var_opt_licencias.get(),
-                    "usar_resumen_fijo": self.var_opt_resumen.get(),
-                    "usar_titulo_fijo": self.var_opt_titulo.get()
-                }
-            }
-
-            usar_ia = self.var_usar_ia.get()
-            resultado = generator.procesar_postulacion_completa(datos_oferta, usar_ia=usar_ia)
-
-            def callback_final():
-                self._mostrar_resultados(resultado)
-                self.btn_generar_descargar.config(state=tk.NORMAL)
-                self._descargar_pdf()
-
-            self.after(0, callback_final)
-        except Exception as e:
-            def err_cb():
-                self.btn_generar.config(state=tk.NORMAL)
-                self.btn_generar_descargar.config(state=tk.NORMAL)
-                if hasattr(self, "btn_generar_cv_pdf_tab"):
-                    self.btn_generar_cv_pdf_tab.config(state=tk.NORMAL)
-                self._manejar_error(str(e))
-            self.after(0, err_cb)
 
     def _mostrar_resultados(self, resultado):
         self.prog_bar.stop()
@@ -588,6 +637,8 @@ class TabNuevaPostulacion(ttk.Frame):
         if hasattr(self, "btn_generar_cv_pdf_tab"):
             self.btn_generar_cv_pdf_tab.config(state=tk.NORMAL)
         self.lbl_status.config(text="❌ Error durante la generación.", foreground="#dc2626")
+        if hasattr(self, "lbl_pdf_ruta"):
+            self.lbl_pdf_ruta.config(text="Aún no se ha generado ningún PDF.")
         messagebox.showerror("Error al Generar", f"Ocurrió un error al procesar la postulación:\n\n{error_msg}")
 
     def _copiar_asunto(self):
@@ -673,15 +724,26 @@ class TabNuevaPostulacion(ttk.Frame):
         self.prog_bar.pack(fill=tk.X, pady=(2, 6))
         self.prog_bar.start(10)
 
-        t = threading.Thread(target=self._procesar_imagen_extraccion, daemon=True)
+        ruta = self.ruta_imagen_actual
+        t = threading.Thread(
+            target=self._extraer_imagen_worker,
+            args=(ruta,),
+            daemon=True
+        )
         t.start()
 
-    def _procesar_imagen_extraccion(self):
+    def _extraer_imagen_worker(self, ruta_imagen):
         try:
-            datos = generator.extraer_datos_de_imagen_oferta(self.ruta_imagen_actual)
-            self.after(0, lambda: self._aplicar_datos_extraidos_imagen(datos))
+            datos = generator.extraer_datos_de_imagen_oferta(ruta_imagen)
+            self._cola_tareas.put({
+                "tipo": "resultado_imagen",
+                "datos": datos
+            })
         except Exception as e:
-            self.after(0, lambda: self._manejar_error_extraccion_imagen(str(e)))
+            self._cola_tareas.put({
+                "tipo": "error_imagen",
+                "error": str(e)
+            })
 
     def _aplicar_datos_extraidos_imagen(self, datos):
         self.prog_bar.stop()

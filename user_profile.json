@@ -1,36 +1,39 @@
 {
   "datos_personales": {
-    "nombre": "JAVIER VIVEROS HUESCA",
-    "titulo_principal": "INGENIERO RF SENIOR | OPTIMIZACIÓN RAN Y AUTOMATIZACIÓN DE PROCESOS TÉCNICOS",
-    "telefono": "+52 (669) 533-0508",
+    "nombre": "Javier Viveros Huesca",
+    "titulo_principal": "Ingeniero de Servicios de Campo / Ingeniero de RF y Optimización",
+    "telefono": "+52 6695330508",
     "email": "viverosjavier86@gmail.com",
-    "ubicacion": "México / EE. UU.",
-    "linkedin": "linkedin.com/in/javier-viveros",
+    "ubicacion": "México",
+    "linkedin": "https://www.linkedin.com/in/javier-huesca-56a31856/",
     "github": "https://github.com/GhostLT",
-    "idiomas": "Español | Inglés",
-    "disponibilidad": "Disponibilidad Inmediata / Elegible Visa TN"
+    "idiomas": "Español (Nativo)",
+    "disponibilidad": "Experiencia previa con permiso de trabajo en Estados Unidos con Visa TN por 4 años. Disponible para reubicación y viajes."
   },
   "credenciales_clave": [
-    "Certificación OSHA 30 Horas. Dominio fluido de inglés técnico (C1).",
-    "CERTIFICACIONES & LICENCIAS PROFESIONALES",
-    "✔  Licencia Eléctrica de Texas TDLR (US #702789)",
-    "✔  Certificación OSHA 30 Horas en Seguridad de la Construcción e Industrial (US #26-607426714)",
-    "✔  Título y Cédula Profesional de Ingeniero en Electrónica",
-    "✔  Elegibilidad inmediata para Visa TN (4 años de experiencia previa trabajando en EE. UU.)",
-    "✔  Licencia de conducir vigente (vehículos estándar y automáticos)"
+    "Competente en Maniobras en Alturas y Certificado DC3",
+    "Red Hat Certified System Administrator (RHCSA / RH199)",
+    "Certificaciones Mpirical en 5G (Acceso Wireless, C-RAN, Network Slicing, VoNR)",
+    "Certificaciones técnicas de fabricantes (Ericsson LTE, Huawei WCDMA RAN, NEC iPasolink)"
   ],
   "educacion": [
     {
       "grado": "Maestría en Administración de Empresas (MBA)",
-      "especialidad": "Gestión Estratégica y Liderazgo Operativo",
-      "institucion": "Universidad TecMilenio",
-      "periodo": "2018 - 2020"
+      "especialidad": "Administración y Gestión de Negocios",
+      "institucion": "Tecmilenio",
+      "periodo": "2019 - 2020"
     },
     {
-      "grado": "Ingeniería en Electrónica",
-      "especialidad": "Control, Telecomunicaciones y Sistemas Digitales",
-      "institucion": "Instituto Tecnológico",
-      "periodo": "2006 - 2011"
+      "grado": "Ingeniería",
+      "especialidad": "Ingeniería Electrónica",
+      "institucion": "Instituto Tecnológico de Reynosa",
+      "periodo": "2004 - 2010"
+    },
+    {
+      "grado": "Técnico (Bachillerato)",
+      "especialidad": "Técnico en Electrónica",
+      "institucion": "CBTis 7",
+      "periodo": "2000 - 2004"
     }
   ],
   "perfiles_especializados": {
@@ -166,15 +169,15 @@
     }
   },
   "opciones_visibilidad": {
-    "usar_titulo_fijo": false,
-    "mostrar_ubicacion": true,
+    "usar_titulo_fijo": true,
+    "mostrar_ubicacion": false,
     "mostrar_github": true,
     "mostrar_disponibilidad": true,
     "mostrar_licencias": true,
     "usar_resumen_fijo": true
   },
-  "resumen_base_fijo": "--- PÁGINA 1 ---\nJAVIER VIVEROS HUESCA\nINGENIERO RF SENIOR | OPTIMIZACIÓN RAN Y AUTOMATIZACIÓN DE PROCESOS TÉCNICOS\n📞  Tel: +52 (669) 533-0508 ✉  Correo: viverosjavier86@gmail.com 🌐  GitHub: https://github.com/GhostLT\nCredenciales Clave: Texas TDLR Electrical License (#702789) • OSHA 30-Hour Safety (#26-607426714) • B.S. Electronics Engineer • Elegible Visa TN •\nBilingüe (C1)\nPERFIL PROFESIONAL\nIngeniero en Electrónica y Técnico Especialista con más de 10 años de experiencia técnica en comisiona",
-  "ruta_cv_base_pdf": "C:\\proyectos\\aplicacion a trabajo\\uploads\\cv_base\\CV_Javier_Viveros_ibericaind_Ingeniero_RF_Senior.pdf",
-  "texto_cv_base_extraido": "--- PÁGINA 1 ---\nJAVIER VIVEROS HUESCA\nINGENIERO RF SENIOR | OPTIMIZACIÓN RAN Y AUTOMATIZACIÓN DE PROCESOS TÉCNICOS\n📞  Tel: +52 (669) 533-0508 ✉  Correo: viverosjavier86@gmail.com 🌐  GitHub: https://github.com/GhostLT\nCredenciales Clave: Texas TDLR Electrical License (#702789) • OSHA 30-Hour Safety (#26-607426714) • B.S. Electronics Engineer • Elegible Visa TN •\nBilingüe (C1)\nPERFIL PROFESIONAL\nIngeniero en Electrónica y Técnico Especialista con más de 10 años de experiencia técnica en comisionamiento, instalación electromecánica,\ndiagnóstico sistemático de fallas (eléctricas 24VDC/120V/480V, neumáticas y mecánicas) y mantenimiento correctivo/preventivo de maquinaria\nindustrial automatizada. Con 4 años de experiencia de campo en Estados Unidos con Visa TN, Licencia Eléctrica de Texas TDLR (#702789) y\nCertificación OSHA 30 Horas. Dominio fluido de inglés técnico (C1).\nHABILIDADES & COMPETENCIAS TÉCNICAS CLAVE\n▪ Optimización RAN y KPIs (Drop Call, Throughput, Retainability) ▪ Troubleshooting avanzado y resolución de celdas degradadas\n▪ Análisis de datos y automatización con Python ▪ Herramientas de Vendor (Huawei U2000/MAE, Ericsson ENM, Nokia\nNetAct)\n▪ Herramientas de post-procesamiento (Actix, TEMS, NEMO) ▪ Drive Test, SSV/Clústers y auditoría de parámetros\nEXPERIENCIA PROFESIONAL RELEVANTE\nIngeniero RF Senior | Optimización RAN y Automatización de Procesos Técnicos • Experiencia en Campo &\nProyectos Industriales\n2018 - Presente | México &\nEE. UU.\nLiderazgo en la resolución de problemas técnicos complejos (Troubleshooting) y análisis de datos en entornos de ingeniería de alta exigencia.\nAutomatización de flujos de trabajo y procesamiento de grandes volúmenes de datos técnicos mediante scripts en Python, reduciendo tiempos de\nanálisis.\nDesarrollo e implementación de reportes ejecutivos detallados con visualizaciones avanzadas para la toma de decisiones estratégicas.\nGestión de proyectos técnicos complejos combinando rigor en ingeniería electrónica con metodologías de gestión estratégica (MBA).\nEDUCACIÓN & FORMACIÓN ACADÉMICA\nMaestría en Administración de Empresas (MBA) - Universidad TecMilenio (Gestión Estratégica y Liderazgo Operativo) 2018 - 2020\nIngeniería en Electrónica - Instituto Tecnológico (Control, Telecomunicaciones y Sistemas Digitales) 2006 - 2011\nCERTIFICACIONES & LICENCIAS PROFESIONALES\n✔  Licencia Eléctrica de Texas TDLR (US #702789)\n✔  Certificación OSHA 30 Horas en Seguridad de la Construcción e Industrial (US #26-607426714)\n✔  Título y Cédula Profesional de Ingeniero en Electrónica\n✔  Maestría en Administración de Empresas (MBA) - Gestión Estratégica y Liderazgo Operativo\n✔  Elegibilidad inmediata para Visa TN (4 años de experiencia previa trabajando en EE. UU.)\n✔  Licencia de conducir vigente (vehículos estándar y automáticos)",
-  "fecha_carga_cv_base": "2026-10-06 08:49:21"
+  "resumen_base_fijo": "Ingeniero en Telecomunicaciones con más de una década de experiencia especializada en telecomunicaciones, optimización de redes móviles (3G, 4G LTE, VoLTE y 5G), soporte de radiofrecuencia (RF) e ingeniería de campo RAN. Con sólida trayectoria en empresas líderes como AT&T, Nextel y Nokia, destacando en el monitoreo de KPIs, resolución de problemas (troubleshooting), automatización de procesos mediante Python y JavaScript, y gestión de proyectos de infraestructura.",
+  "ruta_cv_base_pdf": "C:\\proyectos\\aplicacion a trabajo\\uploads\\cv_base\\Esp CV Javier Huesca.pdf",
+  "texto_cv_base_extraido": "--- PÁGINA 1 ---\nCERTIFICADOS EN USA 2026\nPROFESSIONAL EXPERIENCE\nJAVIER VIVEROS HUESCA\nI N G E N I E R O  D E  S E R V I C I O S  D E\nC A M P O\nFORMACION\nDETALLES DE CONTACTO\nMonitoreo de red y revisión de Indicadores Clave de Rendimiento\n(KPI).\nSoporte de Radiofrecuencia (RF) y optimización de red.\nInstalación de sistemas DAS.\nRealización de inspecciones y generación de informes escritos y\nfotográficos.\nSolicitud, recolección y validación del material necesario para\nejecutar los trabajos.\nCoordinación de las actividades del personal a cargo.\nPreparación de informes periódicos de las actividades realizadas.\nMantenimiento del orden del equipo y sitio de trabajo, reportando\ncualquier anomalía.\nMaestría en Administración de Empresas\n(MBA) | Tecmilenio (Generación 2019-2020)\nIngeniería Electrónica | Instituto\nTecnológico de Reynosa (Generación 2004-\n2010)\nTécnico en Electrónica (Bachillerato) |\nCBTis 7 (Generación 2000-2004)\nTelefono+52 6695330508\nCorreo: viverosjavier86@gmail.com\nDireccion: Calle Durazno 73 Col Huertos\nFamiliares, Mazatlan Sinaloa\nOSHA 30 Licencia 26-607426714\nCompetente en Maniobras en Alturas\nCapacitación en Prevención de Riesgos por\nRadiofrecuencia\nPrimeros Auxilios\nPatógenos transmitidos por la sangre\nElectricista de Texas Licencia\nTDLR Id # 702789\nHERRAMIENTAS\nDrive test tools FRS1 Scanner, OTDR ,Nemo Analyze, Nemo Outdoor,\nXCAL, Topologias, Clusters,  Google Maps,  Google Earth, Tems, MapInfo,\nArieso JDSU ,GPS, Cellphones, Field Fox, Fibras Monomodo, Multimodo\nHandy 2G /3G, LTE, VoLTE/ 5G, Laptop, Brujula, Inclinometro., ONT.\nEmpire Engineering Nov 2022 - oct 2026\nTRABAJE CON PERMISO DE TRABAJO EN ESTADOS UNIDOS\n  CON VISA TN POR 4 ANOS\nLINKEDIN\nhttps://www.linkedin.com/in/javier-huesca-56a31856/\n\n--- PÁGINA 2 ---\nHABILIDADES\nOTDR\nMAPINFO\nANRITSU\nNASTAR\nNEMO\nWINDCATCHER\nATOLL\nREMOTEK OMS\nERICSSON\nEM/EMCLI \nCELL FI\nJAVIER VIVEROS HUESCA\nI N G E N I E R O  D E  R F  O P T I M I Z A C I O N\nULTIMOS CERTIFICADOS\nTOMADOS\nActividades de instalación y diseño de RF relacionadas con la\nconstrucción de la red de banda ancha 5G en AT&T México.\nDeterminación de configuraciones de equipo y potencia.\nResponsable de los KPI de la red 5G/4G LTE VoLTE y 3G.\nResolución de problemas (Troubleshooting), monitoreo y ajuste\n(Tuning).\nMejora de la tasa de llamadas perdidas, revisión de CSFB,\nrendimiento (throughput), colisión PCI, RTWP y PIM.\nImplementación de alta capacidad para eventos especiales.\nCoordinación y gestión de proveedores para proyectos de\ninstalación.\nDesarrollo de soluciones \"indoor\" para clientes con problemas de\ncobertura, optimizando costos operativos y haciendo eficiente la\ngestión del presupuesto.\nSoporte a 120 sitios (Sectores cruzados, fallos de acceso, fallos de\nHandover, etc.).\nAnálisis de relaciones de vecinos y sugerencias para mejorar las\nlistas de vecinos.\nGarantía de cobertura mediante soporte de diagnóstico para la\ninterfaz aérea entre unidades móviles y sitios celulares.\nCapacitación al personal de ventas en el uso de herramientas para\nmostrar la cobertura y el servicio ofrecido.\nIdentificación de contaminación piloto y acciones correctivas\n(reducción de CPICH, optimización de huella para crear servidores\ndominantes).\nAutomatización de procesos con bases de datos y lenguajes como\nJavascript y Python.\nMonitoreo y análisis de KPI del mercado regional para optimizar el\nrendimiento e identificar problemas de backhaul o equipo\n(Indicadores: EQS, NPI, CQI).\nDominio de lenguaje SQL y conocimientos básicos de comandos\nLinux.\nExperiencia en red núcleo (Core) PS, VoLTE, y optimización CS/PS.\nExperiencia en análisis de Big Data y resolución de problemas en\nRAN y CORE.\nMonitoreo de red (alarmas, configuración RAN y CORE), gestión de\nMOPs, KPIs y KQIs.\nProtocolos: Diameter, SIP, S1app, TCP, GTP. Generación de\ntickets.\nPlanificación y optimización de radio LTE para resolver problemas\ny mejorar KPIs.\nSólido conocimiento de mensajes de Capa 3 LTE y UMTS.\nAnálisis de capacidad 3G / LTE / VoLTE para planes de expansión y\npropuestas de nuevos sitios.\nColaboración con Gerentes de Proyecto para lanzamientos y\noptimización de Clústeres. Conocimiento en Actix y TEMS.\nAcceso Wireless 5G\nRedes de Transporte y 5G\nComunicaciones Satelitales y 5G\nInterfaces de Programación de Aplicaciones 5G\nOperación No Standalone de Interfaz Aérea 5G\nIntroducción a Voice over New Radio (VoNR)\nC-RAN para 5G\nSegmentación de Red (Network Slicing) 5G\nAT&T Jun 2013 - Oct 2022\n\n\n--- PÁGINA 3 ---\nPROFESSIONAL EXPERIENCE\nScripting, Git, Docker, kubernetes, Python, Linux ,PHP,\nJavascript, Java, Git, MYSQL, Postgres, Oracle, Power BI,\nTablou, Excel, Power Pivot \nJAVIER VIVEROS HUESCA\nI N G E N I E R O  D E\nC A M P O  R A N\nCoordinación y gestión de proveedores para proyectos de\ninstalación.\nDesarrollo de soluciones \"indoor\" para clientes con\nproblemas de cobertura.\nInstalación e integración de nuevos sitios en Nextel.\nRestauración y resolución de alarmas para LTE, AWS, PCS.\nConfiguración de RETs y scripts para antenas.\nRealización de pruebas de VSWR, PIM, Pérdida de Retorno y\nCortocircuito para cable coaxial.\nResolución de problemas de interferencia.\nCreación de scripts y carga en los nodos.\nAtención a contingencias y fallas de energía.\nAtención a cortes de Fibra Óptica (FO).\nNextel Company, Ago 2011 - May 2013\nAUTOMATIZACIONES PARA REPORTES\nGERENCIALES\nCeCertificado DC3 para trabajo en alturas\nRed Hat - RHCSA Curso de Introducccion (RH199) - Marzo\n2022\nRed Hat - Contenedores, Kubernetes y Administración de\nRed Hat OpenShift II - Abril 2022\nRed Hat OpenStack Administration II: Day 2 Operaciones\npara Cloud (CL210OS)\nPrograma de Certificación en Introducción a Voz Sobre\nRadio (Mpirical) - Ene 2020\nPrograma de Certificación en C-RAN para 5G (Mpirical) -\nEne 2020\nPrograma de Certificación en Interfaces de Programación\nde Aplicaciones 5G (Mpirical) - Ene 2020\nCertificado en LTE por Ericsson - Abril 2018\nCertificado en WCDMA RAN por Huawei - Abril 2018\nCertificado en Configuración LTE L15 por Ericsson - Nov\n2017\nCertificación de Trabajo en Alturas - Jun 2018\nCapacitación Antitzu - Dic 2015, Ciudad de México\nCertificado por la empresa NEC por haber completado\nexitosamente el curso O&M iPasolink 200/400 - 2014\n \nCERTIFICADOS\n\n\n--- PÁGINA 4 ---\nFIELD OPERATIONS SKILLS\nPROFESSIONAL EXPERIENCEMI OBJETIVO\nContribuir al logro de los objetivos y metas\nde la empresa a través de la exitosa\nrealización de las actividades que se me\nasignen, siendo una persona proactiva, con\nliderazgo, responsable y puntual. Buscando\nsiempre un trabajo de calidad, tanto en\nprocesos como en servicios. Asimismo,\naportar a la empresa mis habilidades y\nexperiencia, siempre de acuerdo con sus\ndirectrices y políticas, para lograr una\nvisión de excelencia.\nInstalación de equipos de Banda Base y radio\nde Ericsson.\nOperación de equipos eNodeB de Huawei.\nManejo y operación de OTDR.\nOperación y Mantenimiento (OyM) de redes 3G\ny LTE.\nOyM en campo de plantas eléctricas\n(generadores).\nOyM en campo de sistemas HVAC\n(climatización).\nOyM en campo de enlaces de microondas.\nOyM en campo de Plantas CD.\nInstalación y operación del equipo de\ntransmisión CX600.\nOperación de redes RAN.\nInstalación de equipos Ericsson Base Band.\nOperación de equipos eNodeB de Huawei.\nOperación y mantenimiento de redes 3G y LTE.\nOperación y mantenimiento de generadores, equipos HVAC,\nequipos de microondas y plantas de CD en campo.\nInstalación y operación de CX600 y operación de RAN.\nJAVIER VIVEROS HUESCA\nI N G E N I E R O  D E\nC A M P O  R A N\nNokia Company, Ene 2010- Jul 2011 \nTRABAJOS EN CAMPO",
+  "fecha_carga_cv_base": "2026-10-06 08:58:53"
 }

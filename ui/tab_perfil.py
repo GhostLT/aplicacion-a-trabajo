@@ -1,4 +1,5 @@
 import os
+import queue
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext, filedialog
@@ -10,7 +11,9 @@ class TabPerfil(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.perfil = profile_data.load_user_profile()
+        self._cola_tareas = queue.Queue()
         self._crear_interfaz()
+        self._verificar_cola_tareas()
 
     def _crear_interfaz(self):
         canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
@@ -305,6 +308,50 @@ class TabPerfil(ttk.Frame):
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo cargar el archivo PDF:\n\n{str(e)}")
 
+    def _verificar_cola_tareas(self):
+        """Revisa la cola de tareas en el hilo principal de Tkinter."""
+        try:
+            while not self._cola_tareas.empty():
+                msg = self._cola_tareas.get_nowait()
+                m_type = msg.get("tipo")
+                if m_type == "exito_extraccion":
+                    perfil_actualizado = msg.get("perfil")
+                    self.prog_bar_pdf.stop()
+                    self.prog_bar_pdf.pack_forget()
+                    self.btn_subir_pdf.config(state=tk.NORMAL)
+                    self.btn_extraer_pdf.config(state=tk.NORMAL)
+                    self.btn_ver_pdf_base.config(state=tk.NORMAL)
+                    self.btn_quitar_pdf_base.config(state=tk.NORMAL)
+
+                    self._refrescar_formulario_con_perfil(perfil_actualizado)
+                    self.lbl_status_pdf.config(
+                        text="✅ Perfil extraído e importado exitosamente desde el PDF.",
+                        foreground="#16a34a"
+                    )
+                    messagebox.showinfo(
+                        "Extracción Exitosa",
+                        "✅ ¡Tu perfil base se ha actualizado a partir del CV en PDF!\n\n"
+                        "Todos los datos personales, licencias y resumen se han cargado en el formulario y guardado en user_profile.json.\n\n"
+                        "Los nuevos CVs descargables se generarán tomando como base esta información."
+                    )
+                elif m_type == "error_extraccion":
+                    err = msg.get("error", "Error desconocido")
+                    self.prog_bar_pdf.stop()
+                    self.prog_bar_pdf.pack_forget()
+                    self.btn_subir_pdf.config(state=tk.NORMAL)
+                    self.btn_extraer_pdf.config(state=tk.NORMAL)
+                    self.btn_ver_pdf_base.config(state=tk.NORMAL)
+                    self.btn_quitar_pdf_base.config(state=tk.NORMAL)
+                    self.lbl_status_pdf.config(
+                        text="❌ Error al extraer el perfil del PDF.",
+                        foreground="#dc2626"
+                    )
+                    messagebox.showerror("Error de Extracción", f"No se pudo extraer el perfil del PDF:\n\n{err}")
+        except Exception as e:
+            print(f"Error procesando cola de tab_perfil: {e}")
+        finally:
+            self.after(80, self._verificar_cola_tareas)
+
     def _iniciar_extraccion_pdf_thread(self):
         if not self.ruta_pdf_cv_base:
             messagebox.showwarning("Atención", "Por favor selecciona primero un archivo PDF.")
@@ -322,53 +369,31 @@ class TabPerfil(ttk.Frame):
         self.prog_bar_pdf.pack(fill=tk.X, pady=(2, 6))
         self.prog_bar_pdf.start(10)
 
-        t = threading.Thread(target=self._procesar_extraccion_pdf, daemon=True)
+        ruta = self.ruta_pdf_cv_base
+        t = threading.Thread(
+            target=self._procesar_extraccion_pdf_worker,
+            args=(ruta,),
+            daemon=True
+        )
         t.start()
 
-    def _procesar_extraccion_pdf(self):
+    def _procesar_extraccion_pdf_worker(self, ruta_pdf):
+        """Worker en hilo secundario. 100% libre de llamadas a Tkinter."""
         try:
-            texto = pdf_profile_extractor.extraer_texto_de_pdf(self.ruta_pdf_cv_base)
-            datos_extraidos = pdf_profile_extractor.estructurar_perfil_con_ia(texto, self.ruta_pdf_cv_base)
+            texto = pdf_profile_extractor.extraer_texto_de_pdf(ruta_pdf)
+            datos_extraidos = pdf_profile_extractor.estructurar_perfil_con_ia(texto, ruta_pdf)
             perfil_actualizado = profile_data.actualizar_perfil_desde_datos_extraidos(
-                datos_extraidos, self.ruta_pdf_cv_base, texto
+                datos_extraidos, ruta_pdf, texto
             )
-
-            def cb_exito():
-                self.prog_bar_pdf.stop()
-                self.prog_bar_pdf.pack_forget()
-                self.btn_subir_pdf.config(state=tk.NORMAL)
-                self.btn_extraer_pdf.config(state=tk.NORMAL)
-                self.btn_ver_pdf_base.config(state=tk.NORMAL)
-                self.btn_quitar_pdf_base.config(state=tk.NORMAL)
-
-                self._refrescar_formulario_con_perfil(perfil_actualizado)
-                self.lbl_status_pdf.config(
-                    text="✅ Perfil extraído e importado exitosamente desde el PDF.",
-                    foreground="#16a34a"
-                )
-                messagebox.showinfo(
-                    "Extracción Exitosa",
-                    "✅ ¡Tu perfil base se ha actualizado a partir del CV en PDF!\n\n"
-                    "Todos los datos personales, licencias y resumen se han cargado en el formulario y guardado en user_profile.json.\n\n"
-                    "Los nuevos CVs descargables se generarán tomando como base esta información."
-                )
-
-            self.after(0, cb_exito)
+            self._cola_tareas.put({
+                "tipo": "exito_extraccion",
+                "perfil": perfil_actualizado
+            })
         except Exception as e:
-            def cb_error(err):
-                self.prog_bar_pdf.stop()
-                self.prog_bar_pdf.pack_forget()
-                self.btn_subir_pdf.config(state=tk.NORMAL)
-                self.btn_extraer_pdf.config(state=tk.NORMAL)
-                self.btn_ver_pdf_base.config(state=tk.NORMAL)
-                self.btn_quitar_pdf_base.config(state=tk.NORMAL)
-                self.lbl_status_pdf.config(
-                    text="❌ Error al extraer el perfil del PDF.",
-                    foreground="#dc2626"
-                )
-                messagebox.showerror("Error de Extracción", f"No se pudo extraer el perfil del PDF:\n\n{err}")
-
-            self.after(0, lambda: cb_error(str(e)))
+            self._cola_tareas.put({
+                "tipo": "error_extraccion",
+                "error": str(e)
+            })
 
     def _refrescar_formulario_con_perfil(self, perfil):
         self.perfil = perfil
