@@ -22,6 +22,9 @@ DEFAULT_PROFILE = {
         "mostrar_licencias": True,         # True: incluye la sección de licencias; False: se omite en el PDF
         "usar_resumen_fijo": True          # True: usa por defecto lo escrito en resumen base; False: lo crea acorde al perfil
     },
+    "ruta_cv_base_pdf": "",
+    "texto_cv_base_extraido": "",
+    "fecha_carga_cv_base": "",
     "resumen_base_fijo": "Ingeniero en Electrónica y Técnico Especialista con más de 10 años de experiencia técnica en comisionamiento, instalación electromecánica, diagnóstico sistemático de fallas (eléctricas 24VDC/120V/480V, neumáticas y mecánicas) y mantenimiento correctivo/preventivo de maquinaria industrial automatizada. Con 4 años de experiencia de campo en Estados Unidos con Visa TN, Licencia Eléctrica de Texas TDLR (#702789) y Certificación OSHA 30 Horas. Dominio fluido de inglés técnico (C1).",
     "credenciales_clave": [
         "Licencia Eléctrica de Texas TDLR (US #702789)",
@@ -195,6 +198,12 @@ def load_user_profile():
                 
                 if "resumen_base_fijo" not in data:
                     data["resumen_base_fijo"] = DEFAULT_PROFILE["resumen_base_fijo"]
+                if "ruta_cv_base_pdf" not in data:
+                    data["ruta_cv_base_pdf"] = ""
+                if "texto_cv_base_extraido" not in data:
+                    data["texto_cv_base_extraido"] = ""
+                if "fecha_carga_cv_base" not in data:
+                    data["fecha_carga_cv_base"] = ""
 
                 return data
         except Exception:
@@ -208,3 +217,36 @@ def save_user_profile(profile_dict):
     """Guarda el perfil del usuario en user_profile.json."""
     with open(PROFILE_DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(profile_dict, f, ensure_ascii=False, indent=2)
+
+def actualizar_perfil_desde_datos_extraidos(datos_extraidos: dict, ruta_pdf_origen: str, texto_extraido: str) -> dict:
+    """
+    Actualiza el perfil del usuario con los datos extraídos de un CV en PDF,
+    preservando las preferencias de visibilidad y estructura del sistema.
+    """
+    import time
+    perfil = load_user_profile()
+
+    dp = datos_extraidos.get("datos_personales", {})
+    if "datos_personales" not in perfil:
+        perfil["datos_personales"] = {}
+
+    for k in ["nombre", "titulo_principal", "telefono", "email", "ubicacion", "linkedin", "github", "idiomas", "disponibilidad"]:
+        val = dp.get(k)
+        if val and str(val).strip():
+            perfil["datos_personales"][k] = str(val).strip()
+
+    if datos_extraidos.get("resumen_base_fijo"):
+        perfil["resumen_base_fijo"] = str(datos_extraidos["resumen_base_fijo"]).strip()
+
+    if datos_extraidos.get("credenciales_clave"):
+        perfil["credenciales_clave"] = [c.strip() for c in datos_extraidos["credenciales_clave"] if c.strip()]
+
+    if datos_extraidos.get("educacion"):
+        perfil["educacion"] = datos_extraidos["educacion"]
+
+    perfil["ruta_cv_base_pdf"] = ruta_pdf_origen or ""
+    perfil["texto_cv_base_extraido"] = texto_extraido or ""
+    perfil["fecha_carga_cv_base"] = time.strftime("%Y-%m-%d %H:%M:%S")
+
+    save_user_profile(perfil)
+    return perfil

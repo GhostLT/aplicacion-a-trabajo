@@ -1,6 +1,10 @@
+import os
+import threading
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import ttk, messagebox, scrolledtext, filedialog
 import profile_data
+from pdf_engine import abrir_pdf_en_sistema
+import pdf_profile_extractor
 
 class TabPerfil(ttk.Frame):
     def __init__(self, parent):
@@ -34,6 +38,77 @@ class TabPerfil(ttk.Frame):
         self.var_mostrar_disponibilidad = tk.BooleanVar(value=opc.get("mostrar_disponibilidad", True))
         self.var_mostrar_licencias = tk.BooleanVar(value=opc.get("mostrar_licencias", True))
         self.var_usar_resumen_fijo = tk.BooleanVar(value=opc.get("usar_resumen_fijo", True))
+
+        # 0. SECCIÓN DESTACADA: SUBIR CV BASE EN PDF
+        pdf_box = ttk.LabelFrame(scrollable_frame, text=" 📄 Cargar CV Base en PDF (Importar Perfil Automáticamente) ", padding=10)
+        pdf_box.pack(fill=tk.X, pady=(0, 10))
+
+        pdf_info_row = ttk.Frame(pdf_box)
+        pdf_info_row.pack(fill=tk.X, pady=(0, 6))
+
+        ruta_cv_existente = self.perfil.get("ruta_cv_base_pdf", "")
+        self.ruta_pdf_cv_base = ruta_cv_existente if (ruta_cv_existente and os.path.exists(ruta_cv_existente)) else ""
+        txt_inicial_pdf = f"📄 Archivo actual: {os.path.basename(self.ruta_pdf_cv_base)}" if self.ruta_pdf_cv_base else "Ningún archivo PDF cargado como CV base."
+
+        self.lbl_pdf_cv_base = ttk.Label(
+            pdf_info_row,
+            text=txt_inicial_pdf,
+            font=("Segoe UI", 9, "bold" if self.ruta_pdf_cv_base else "normal"),
+            foreground="#0f3460" if self.ruta_pdf_cv_base else "#64748b"
+        )
+        self.lbl_pdf_cv_base.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        pdf_btn_row = ttk.Frame(pdf_box)
+        pdf_btn_row.pack(fill=tk.X, pady=2)
+
+        self.btn_subir_pdf = ttk.Button(
+            pdf_btn_row,
+            text="📁 Seleccionar CV PDF...",
+            command=self._seleccionar_pdf_base
+        )
+        self.btn_subir_pdf.pack(side=tk.LEFT, padx=(0, 6))
+
+        self.btn_extraer_pdf = tk.Button(
+            pdf_btn_row,
+            text="✨ Extraer y Cargar Perfil desde PDF",
+            bg="#ea580c",
+            fg="white",
+            activebackground="#c2410c",
+            activeforeground="white",
+            font=("Segoe UI", 9, "bold"),
+            relief=tk.FLAT,
+            padx=10,
+            pady=3,
+            command=self._iniciar_extraccion_pdf_thread,
+            state=tk.NORMAL if self.ruta_pdf_cv_base else tk.DISABLED,
+            cursor="hand2"
+        )
+        self.btn_extraer_pdf.pack(side=tk.LEFT, padx=(0, 6))
+
+        self.btn_ver_pdf_base = ttk.Button(
+            pdf_btn_row,
+            text="👁️ Ver PDF",
+            command=self._abrir_pdf_base,
+            state=tk.NORMAL if self.ruta_pdf_cv_base else tk.DISABLED
+        )
+        self.btn_ver_pdf_base.pack(side=tk.LEFT, padx=(0, 6))
+
+        self.btn_quitar_pdf_base = ttk.Button(
+            pdf_btn_row,
+            text="❌ Quitar",
+            command=self._quitar_pdf_base,
+            state=tk.NORMAL if self.ruta_pdf_cv_base else tk.DISABLED
+        )
+        self.btn_quitar_pdf_base.pack(side=tk.LEFT)
+
+        self.lbl_status_pdf = ttk.Label(
+            pdf_box,
+            text="Sube tu CV en PDF para extraer tu experiencia y alimentar la creación de nuevos CVs descargables.",
+            font=("Segoe UI", 8, "italic"),
+            foreground="#475569"
+        )
+        self.lbl_status_pdf.pack(anchor=tk.W, pady=(4, 0))
+        self.prog_bar_pdf = ttk.Progressbar(pdf_box, mode="indeterminate")
 
         # 1. DATOS PERSONALES Y CONTACTO
         datos_box = ttk.LabelFrame(scrollable_frame, text=" 👤 Datos de Contacto y Perfil Base ", padding=10)
@@ -198,3 +273,158 @@ class TabPerfil(ttk.Frame):
             messagebox.showinfo("Perfil Guardado", "✅ Preferencias y datos de perfil base guardados exitosamente en user_profile.json.")
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo guardar el perfil:\n\n{str(e)}")
+
+    def _seleccionar_pdf_base(self):
+        archivo = filedialog.askopenfilename(
+            title="Seleccionar Currículum Vitae en PDF",
+            filetypes=[("Archivos PDF", "*.pdf"), ("Todos los archivos", "*.*")]
+        )
+        if archivo:
+            try:
+                ruta_copiada = pdf_profile_extractor.guardar_copia_cv_base(archivo)
+                self.ruta_pdf_cv_base = ruta_copiada
+                nombre = os.path.basename(ruta_copiada)
+                self.lbl_pdf_cv_base.config(
+                    text=f"📄 Archivo actual: {nombre}",
+                    foreground="#0f3460",
+                    font=("Segoe UI", 9, "bold")
+                )
+                self.btn_extraer_pdf.config(state=tk.NORMAL)
+                self.btn_ver_pdf_base.config(state=tk.NORMAL)
+                self.btn_quitar_pdf_base.config(state=tk.NORMAL)
+                self.lbl_status_pdf.config(
+                    text=f"PDF '{nombre}' cargado. Listo para extraer el perfil.",
+                    foreground="#16a34a"
+                )
+
+                if messagebox.askyesno(
+                    "CV PDF Cargado",
+                    f"Se cargó '{nombre}'.\n\n¿Deseas que la Inteligencia Artificial analice y extraiga tu perfil desde este PDF ahora mismo?"
+                ):
+                    self._iniciar_extraccion_pdf_thread()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo cargar el archivo PDF:\n\n{str(e)}")
+
+    def _iniciar_extraccion_pdf_thread(self):
+        if not self.ruta_pdf_cv_base:
+            messagebox.showwarning("Atención", "Por favor selecciona primero un archivo PDF.")
+            return
+
+        self.btn_subir_pdf.config(state=tk.DISABLED)
+        self.btn_extraer_pdf.config(state=tk.DISABLED)
+        self.btn_ver_pdf_base.config(state=tk.DISABLED)
+        self.btn_quitar_pdf_base.config(state=tk.DISABLED)
+
+        self.lbl_status_pdf.config(
+            text="Extrayendo texto y estructurando tu perfil con Inteligencia Artificial...",
+            foreground="#ea580c"
+        )
+        self.prog_bar_pdf.pack(fill=tk.X, pady=(2, 6))
+        self.prog_bar_pdf.start(10)
+
+        t = threading.Thread(target=self._procesar_extraccion_pdf, daemon=True)
+        t.start()
+
+    def _procesar_extraccion_pdf(self):
+        try:
+            texto = pdf_profile_extractor.extraer_texto_de_pdf(self.ruta_pdf_cv_base)
+            datos_extraidos = pdf_profile_extractor.estructurar_perfil_con_ia(texto, self.ruta_pdf_cv_base)
+            perfil_actualizado = profile_data.actualizar_perfil_desde_datos_extraidos(
+                datos_extraidos, self.ruta_pdf_cv_base, texto
+            )
+
+            def cb_exito():
+                self.prog_bar_pdf.stop()
+                self.prog_bar_pdf.pack_forget()
+                self.btn_subir_pdf.config(state=tk.NORMAL)
+                self.btn_extraer_pdf.config(state=tk.NORMAL)
+                self.btn_ver_pdf_base.config(state=tk.NORMAL)
+                self.btn_quitar_pdf_base.config(state=tk.NORMAL)
+
+                self._refrescar_formulario_con_perfil(perfil_actualizado)
+                self.lbl_status_pdf.config(
+                    text="✅ Perfil extraído e importado exitosamente desde el PDF.",
+                    foreground="#16a34a"
+                )
+                messagebox.showinfo(
+                    "Extracción Exitosa",
+                    "✅ ¡Tu perfil base se ha actualizado a partir del CV en PDF!\n\n"
+                    "Todos los datos personales, licencias y resumen se han cargado en el formulario y guardado en user_profile.json.\n\n"
+                    "Los nuevos CVs descargables se generarán tomando como base esta información."
+                )
+
+            self.after(0, cb_exito)
+        except Exception as e:
+            def cb_error(err):
+                self.prog_bar_pdf.stop()
+                self.prog_bar_pdf.pack_forget()
+                self.btn_subir_pdf.config(state=tk.NORMAL)
+                self.btn_extraer_pdf.config(state=tk.NORMAL)
+                self.btn_ver_pdf_base.config(state=tk.NORMAL)
+                self.btn_quitar_pdf_base.config(state=tk.NORMAL)
+                self.lbl_status_pdf.config(
+                    text="❌ Error al extraer el perfil del PDF.",
+                    foreground="#dc2626"
+                )
+                messagebox.showerror("Error de Extracción", f"No se pudo extraer el perfil del PDF:\n\n{err}")
+
+            self.after(0, lambda: cb_error(str(e)))
+
+    def _refrescar_formulario_con_perfil(self, perfil):
+        self.perfil = perfil
+        p = perfil.get("datos_personales", {})
+
+        self.entry_nombre.delete(0, tk.END)
+        self.entry_nombre.insert(0, p.get("nombre", ""))
+
+        self.entry_titulo.delete(0, tk.END)
+        self.entry_titulo.insert(0, p.get("titulo_principal", ""))
+
+        self.entry_tel.delete(0, tk.END)
+        self.entry_tel.insert(0, p.get("telefono", ""))
+
+        self.entry_email.delete(0, tk.END)
+        self.entry_email.insert(0, p.get("email", ""))
+
+        self.entry_ubicacion.delete(0, tk.END)
+        self.entry_ubicacion.insert(0, p.get("ubicacion", ""))
+
+        self.entry_github.delete(0, tk.END)
+        self.entry_github.insert(0, p.get("github", ""))
+
+        self.entry_idiomas.delete(0, tk.END)
+        self.entry_idiomas.insert(0, p.get("idiomas", ""))
+
+        self.entry_disp.delete(0, tk.END)
+        self.entry_disp.insert(0, p.get("disponibilidad", ""))
+
+        self.txt_credenciales.delete("1.0", tk.END)
+        self.txt_credenciales.insert("1.0", "\n".join(perfil.get("credenciales_clave", [])))
+
+        self.txt_resumen.delete("1.0", tk.END)
+        self.txt_resumen.insert("1.0", perfil.get("resumen_base_fijo", ""))
+
+    def _abrir_pdf_base(self):
+        if self.ruta_pdf_cv_base and os.path.exists(self.ruta_pdf_cv_base):
+            abrir_pdf_en_sistema(self.ruta_pdf_cv_base)
+        else:
+            messagebox.showwarning("Aviso", "No se encontró el archivo PDF para abrir.")
+
+    def _quitar_pdf_base(self):
+        if messagebox.askyesno("Quitar PDF Base", "¿Deseas desvincular el archivo PDF del perfil base?"):
+            self.ruta_pdf_cv_base = ""
+            self.perfil["ruta_cv_base_pdf"] = ""
+            self.perfil["texto_cv_base_extraido"] = ""
+            profile_data.save_user_profile(self.perfil)
+            self.lbl_pdf_cv_base.config(
+                text="Ningún archivo PDF cargado como CV base.",
+                foreground="#64748b",
+                font=("Segoe UI", 9, "normal")
+            )
+            self.btn_extraer_pdf.config(state=tk.DISABLED)
+            self.btn_ver_pdf_base.config(state=tk.DISABLED)
+            self.btn_quitar_pdf_base.config(state=tk.DISABLED)
+            self.lbl_status_pdf.config(
+                text="PDF desvinculado.",
+                foreground="#475569"
+            )

@@ -73,6 +73,12 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
    - **Botón `✨ Crear Nueva Postulación`:** Disponible directamente en la barra de guardado de MariaDB.
    - Diálogo automático tras guardar exitosamente en la base de datos que te ofrece limpiar el formulario para iniciar la siguiente postulación de inmediato sin tener que cerrar y abrir la aplicación.
 
+9. **📄 Carga de CV Base en PDF e Importación Automática del Perfil:**
+   - **Campo en "Mi Perfil Base":** Permite subir tu Currículum Vitae actual en formato **PDF** para que el sistema tome de ahí directamente tu perfil profesional.
+   - **Extracción Inteligente:** Combina `pypdf` y **Google Gemini AI** (con respaldo local offline) para extraer automáticamente tu nombre, título, datos de contacto, licencias (TDLR, OSHA 30), certificaciones, resumen profesional y educación.
+   - **Alimentación de Nuevos CVs:** El texto y datos extraídos se guardan en `user_profile.json` y se inyectan automáticamente en el motor generador para crear los CVs en PDF descargables adaptados a las vacantes de forma 100% fidedigna a tu experiencia real.
+   - **Controles Intuitivos:** Botón **`📁 Seleccionar CV PDF...`**, botón naranja destacado **`✨ Extraer y Cargar Perfil desde PDF`**, visor rápido **`👁️ Ver PDF`** y opción para desvincular con **`❌ Quitar`**.
+
 ---
 
 ## 🏗️ Arquitectura del Proyecto
@@ -83,7 +89,8 @@ aplicacion a trabajo/
 ├── main.py                     # Punto de entrada de la aplicación
 ├── config.py                   # Carga de variables de entorno (.env) y rutas
 ├── database.py                 # Conexión MariaDB, creación de esquema y consultas CRUD
-├── profile_data.py             # Datos maestros del candidato (Javier Viveros Huesca)
+├── profile_data.py             # Datos maestros del candidato y persistencia en user_profile.json
+├── pdf_profile_extractor.py    # Extracción de texto y estructuración de perfil desde CV PDF
 ├── generator.py                # Analizador de vacantes, lógica de CV y redactor de correos
 ├── pdf_engine.py               # Renderizador HTML -> PDF mediante Edge Headless
 │
@@ -92,12 +99,13 @@ aplicacion a trabajo/
 │   ├── app_window.py           # Ventana principal Tkinter con pestañas modernas
 │   ├── tab_nueva_postulacion.py# Pestaña para pegar vacante y generar CV/correo
 │   ├── tab_historial.py        # Pestaña con tabla, métricas y cambio de fases
-│   ├── tab_perfil.py           # Pestaña para editar el perfil base del candidato
+│   ├── tab_perfil.py           # Pestaña para editar perfil y cargar CV base en PDF
 │   └── tab_configuracion.py    # Configuración de MariaDB, Gemini y rutas
 │
 ├── templates/
 │   └── cv_template.html        # Plantilla HTML/CSS profesional y ATS-friendly
 │
+├── uploads/                    # Almacenamiento local del CV base en PDF cargado
 ├── output_pdfs/                # Almacenamiento local de los PDFs generados
 ├── user_profile.json           # Datos editables del perfil guardados en JSON
 ├── .env                        # Variables de entorno y credenciales locales

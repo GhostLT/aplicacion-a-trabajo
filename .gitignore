@@ -44,3 +44,6 @@ output_pdfs/*.pdf
 !output_pdfs/.gitkeep
 output_pdfs/*.html
 !output_pdfs/.gitkeep
+
+# Archivos subidos localmente
+uploads/

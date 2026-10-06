@@ -118,10 +118,14 @@ def _generar_con_gemini(datos_oferta: dict, perfil_base: dict, perfil_clave: str
         client = genai.Client(api_key=config.GEMINI_API_KEY)
         datos_p = perfil_base["datos_personales"]
         especialidad = perfil_base["perfiles_especializados"].get(perfil_clave, {})
+        credenciales_str = " | ".join(perfil_base.get("credenciales_clave", []))
+        resumen_base_cand = perfil_base.get("resumen_base_fijo") or especialidad.get("resumen_es", "")
+        texto_cv_pdf = perfil_base.get("texto_cv_base_extraido", "")
+        bloque_cv_pdf = f"\n--- INFORMACIÓN ÍNTEGRA EXTRAÍDA DEL CV BASE EN PDF DEL CANDIDATO ---\n{texto_cv_pdf[:4000]}\n" if texto_cv_pdf else ""
 
         prompt = f"""
 Actúa como un experto en redacción de CVs para contratación técnica internacional (ATS friendly) y reclutamiento de alto nivel.
-Adapta el perfil profesional de Javier Viveros Huesca para la siguiente oferta laboral:
+Adapta el perfil profesional del candidato para la siguiente oferta laboral:
 
 --- DATOS DE LA OFERTA ---
 Empresa: {datos_oferta.get('empresa', '')}
@@ -131,13 +135,13 @@ Idioma deseado: {"Inglés" if idioma == 'en' else "Español"}
 Descripción de la Oferta:
 {datos_oferta.get('descripcion_oferta', '')[:4000]}
 
---- DATOS REALES DEL CANDIDATO (NO INVENTAR NUEVOS TÍTULOS O LICENCIAS) ---
-Nombre: {datos_p['nombre']}
-Grados: Título de Ingeniero en Electrónica (Cédula Profesional) | MBA en Gestión Estratégica
-Credenciales Clave: Texas TDLR Electrical License #702789 | Certificación OSHA 30 Horas #26-607426714 | Elegibilidad Visa TN (4 años de experiencia en EE. UU.) | Licencia de conducir vigente
-Experiencia de referencia: {especialidad.get('nombre', '')}
-Resumen base: {especialidad.get('resumen_es', '')}
+--- DATOS REALES DEL CANDIDATO (TOMADOS DE SU PERFIL Y CV BASE EN PDF) ---
+Nombre: {datos_p.get('nombre', 'Javier Viveros Huesca')}
+Título Base: {datos_p.get('titulo_principal', '')}
+Credenciales y Licencias Clave: {credenciales_str}
+Resumen profesional base: {resumen_base_cand}
 Habilidades base: {', '.join(especialidad.get('habilidades_clave', []))}
+{bloque_cv_pdf}
 
 --- INSTRUCCIONES DE SALIDA ---
 Genera un objeto JSON EXACTO con las siguientes claves:
