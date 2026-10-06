@@ -180,6 +180,13 @@ El idioma seleccionado para este documento es: {"INGLÉS (ENGLISH)" if is_en els
 {"Todo el contenido generado en el JSON (titulo_objetivo, resumen_adaptado, habilidades_clave, logros_experiencia, asunto_correo, cuerpo_correo) DEBE ESTAR 100% EN INGLÉS PROFESIONAL FLUIDO (US STANDARD). No mezcles palabras en español." if is_en else "Todo el contenido generado en el JSON DEBE ESTAR 100% EN ESPAÑOL PROFESIONAL FORMAL."}
 """
 
+        mostrar_mae = datos_oferta.get("opciones_visibilidad", {}).get("mostrar_maestria", perfil_base.get("opciones_visibilidad", {}).get("mostrar_maestria", True))
+        instruccion_maestria = (
+            "El candidato cuenta con Maestría en Administración de Empresas (MBA)."
+            if mostrar_mae
+            else "IMPORTANTE: OMITIR por completo la Maestría / MBA en el CV y en el correo de postulación (el candidato solicitó omitirla para esta vacante). No menciones MBA ni grado de maestría en ningún texto."
+        )
+
         prompt = f"""
 Actúa como un experto en redacción de CVs para contratación técnica internacional (ATS friendly) y reclutamiento de alto nivel.
 Adapta el perfil profesional del candidato para la siguiente oferta laboral:
@@ -201,6 +208,7 @@ Habilidades base: {', '.join(especialidad.get('habilidades_clave', []))}
 {bloque_cv_pdf}
 
 {instruccion_idioma}
+{instruccion_maestria}
 
 --- INSTRUCCIONES DE SALIDA ---
 Genera un objeto JSON EXACTO con las siguientes claves:
@@ -278,11 +286,17 @@ Credentials: Texas TDLR #702789 | OSHA 30 #26-607426714 | TN Visa Ready
         resumen = especialidad.get("resumen_es")
         titulo_obj = f"{titulo_puesto} | Ing. Electrónica (Licencia Texas TDLR & OSHA 30)"
         asunto_correo = f"Postulación: {titulo_puesto} - {empresa} | Javier Viveros Huesca (Ing. Electrónica | Licencia Texas TDLR & OSHA 30)"
+        mostrar_mae = datos_oferta.get("opciones_visibilidad", {}).get("mostrar_maestria", perfil_base.get("opciones_visibilidad", {}).get("mostrar_maestria", True))
+        if mostrar_mae:
+            mencion_formacion = "Cuento con formación como Ingeniero en Electrónica (Título y Cédula Profesional), Maestría en Administración de Empresas (MBA) y más de 10 años de experiencia técnica comprobada en campo, con un respaldo de 4 años continuos de trabajo en Estados Unidos bajo estatus de Visa TN."
+        else:
+            mencion_formacion = "Cuento con formación como Ingeniero en Electrónica (Título y Cédula Profesional) y más de 10 años de experiencia técnica comprobada en campo, con un respaldo de 4 años continuos de trabajo en Estados Unidos bajo estatus de Visa TN."
+
         cuerpo_correo = f"""Estimado equipo de Selección y Reclutamiento de {empresa},
 
 Es un gusto saludarlos. Me pongo en contacto con ustedes para presentar mi postulación formal a la vacante de {titulo_puesto}{f' en {ubicacion}' if ubicacion else ''}.
 
-Cuento con formación como Ingeniero en Electrónica (Título y Cédula Profesional), Maestría en Administración de Empresas (MBA) y más de 10 años de experiencia técnica comprobada en campo, con un respaldo de 4 años continuos de trabajo en Estados Unidos bajo estatus de Visa TN.
+{mencion_formacion}
 
 Aspectos clave de mi perfil que aportan valor inmediato a {empresa}:
 1. Licencia Eléctrica de Texas TDLR activa (US License #702789).
@@ -342,11 +356,18 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
     titulo_educacion = "Education & Academic Background" if is_en else "Educación & Formación Académica"
     titulo_licencias = "Professional Certifications & Licenses" if is_en else "Certificaciones & Licencias Profesionales"
 
+    mostrar_maestria = opciones.get("mostrar_maestria", True)
+
     # Título Principal
     if opciones.get("usar_titulo_fijo", False):
         titulo_final = p_data.get("titulo_principal", "Especialista Técnico")
     else:
         titulo_final = datos_cv.get("titulo_objetivo", p_data.get("titulo_principal", "Especialista Técnico"))
+
+    if not mostrar_maestria:
+        titulo_final = re.sub(r'\s*\|\s*MBA\b', '', titulo_final, flags=re.IGNORECASE)
+        titulo_final = re.sub(r'\bMBA\s*\|\s*', '', titulo_final, flags=re.IGNORECASE)
+        titulo_final = re.sub(r'\bMBA\b', '', titulo_final, flags=re.IGNORECASE).strip()
 
     # Resumen Profesional
     if opciones.get("usar_resumen_fijo", True):
@@ -356,6 +377,13 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
             resumen_final = perfil_base.get("resumen_base_fijo") or datos_cv.get("resumen_adaptado", "")
     else:
         resumen_final = datos_cv.get("resumen_adaptado", "")
+
+    if not mostrar_maestria and resumen_final:
+        resumen_final = re.sub(r'con\s+Maestría\s+en\s+Administración\s+de\s+Empresas\s*\(MBA\)\s+en\s+Gestión\s+Estratégica[.,]?', '', resumen_final, flags=re.IGNORECASE)
+        resumen_final = re.sub(r'con\s+Maestría\s+en\s+Administración\s+de\s+Empresas\s*\(MBA\)[.,]?', '', resumen_final, flags=re.IGNORECASE)
+        resumen_final = re.sub(r',?\s*Maestría\s+en\s+Administración\s+de\s+Empresas\s*\(MBA\)', '', resumen_final, flags=re.IGNORECASE)
+        resumen_final = re.sub(r'\|\s*MBA\s*\|', '|', resumen_final, flags=re.IGNORECASE)
+        resumen_final = re.sub(r'with\s+a?\s*Master\s+of\s+Business\s+Administration\s*\(MBA\)[.,]?', '', resumen_final, flags=re.IGNORECASE)
 
     # Ubicación
     if opciones.get("mostrar_ubicacion", True) and p_data.get("ubicacion"):
@@ -393,6 +421,10 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
 
     # Sección Licencias y Certificaciones
     if opciones.get("mostrar_licencias", True) and perfil_base.get("credenciales_clave"):
+        creds_base = perfil_base.get("credenciales_clave", [])
+        if not mostrar_maestria:
+            creds_base = [c for c in creds_base if not any(k in c.lower() for k in ["maestría", "maestria", "mba", "master"])]
+
         if is_en:
             traducciones_cred = {
                 "Competente en Maniobras en Alturas y Certificado DC3": "Fall Protection Competent Person & DC3 Safety Certified (Heights)",
@@ -402,9 +434,9 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
                 "Electricista de Texas Licencia TDLR Id # 702789": "Active Texas TDLR Electrical License (#702789)",
                 "OSHA 30 Licencia 26-607426714": "OSHA 30-Hour Construction Safety Certification (#26-607426714)"
             }
-            cred_items = [f"<li>{traducciones_cred.get(cred, cred)}</li>" for cred in perfil_base.get("credenciales_clave", [])]
+            cred_items = [f"<li>{traducciones_cred.get(cred, cred)}</li>" for cred in creds_base]
         else:
-            cred_items = [f"<li>{cred}</li>" for cred in perfil_base.get("credenciales_clave", [])]
+            cred_items = [f"<li>{cred}</li>" for cred in creds_base]
 
         seccion_licencias = f"""
 <div class="section-title">{titulo_licencias}</div>
@@ -445,6 +477,10 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
         esp = edu.get("especialidad", "")
         inst = edu.get("institucion", "")
         periodo = edu.get("periodo", "")
+
+        es_maestria = any(k in (grado + " " + esp).lower() for k in ["maestría", "maestria", "mba", "master"])
+        if es_maestria and not mostrar_maestria:
+            continue
 
         if is_en:
             if "Maestría" in grado or "MBA" in grado:
@@ -520,9 +556,11 @@ def procesar_postulacion_completa(datos_oferta: dict, usar_ia: bool = True) -> d
     if "opciones_visibilidad" in datos_oferta and datos_oferta["opciones_visibilidad"]:
         opciones.update(datos_oferta["opciones_visibilidad"])
 
-    # Idioma
+    # Idioma (si 'en_ingles' está activo o idioma es 'en', forzar 'en' 100%)
     idioma = datos_oferta.get("idioma", "auto")
-    if idioma == "auto" or not idioma:
+    if opciones.get("en_ingles", False) or idioma == "en":
+        idioma = "en"
+    elif idioma == "auto" or not idioma:
         idioma = detectar_idioma(desc_oferta)
 
     # Perfil técnico

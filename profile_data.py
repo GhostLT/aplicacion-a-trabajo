@@ -21,6 +21,8 @@ DEFAULT_PROFILE = {
         "mostrar_disponibilidad": True,    # True: muestra disponibilidad en el PDF; False: se omite
         "mostrar_licencias": True,         # True: incluye la sección de licencias; False: se omite en el PDF
         "usar_resumen_fijo": True,         # True: usa por defecto lo escrito en resumen base; False: lo crea acorde al perfil
+        "mostrar_maestria": True,          # True: incluye la Maestría / MBA en el CV PDF; False: se omite
+        "en_ingles": False,                # True: genera el CV PDF 100% en inglés; False: en español
         "idioma_predeterminado": "auto"    # "auto": según vacante, "es": 100% Español, "en": 100% Inglés
     },
     "ruta_cv_base_pdf": "",

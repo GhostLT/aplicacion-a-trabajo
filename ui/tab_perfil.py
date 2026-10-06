@@ -41,7 +41,11 @@ class TabPerfil(ttk.Frame):
         self.var_mostrar_disponibilidad = tk.BooleanVar(value=opc.get("mostrar_disponibilidad", True))
         self.var_mostrar_licencias = tk.BooleanVar(value=opc.get("mostrar_licencias", True))
         self.var_usar_resumen_fijo = tk.BooleanVar(value=opc.get("usar_resumen_fijo", True))
-        self.var_idioma_default = tk.StringVar(value=opc.get("idioma_predeterminado", "auto"))
+        self.var_mostrar_maestria = tk.BooleanVar(value=opc.get("mostrar_maestria", True))
+        id_pref_init = opc.get("idioma_predeterminado", "auto")
+        es_en_init = (id_pref_init == "en") or bool(opc.get("en_ingles", False))
+        self.var_en_ingles_default = tk.BooleanVar(value=es_en_init)
+        self.var_idioma_default = tk.StringVar(value="en" if es_en_init else id_pref_init)
 
         # 0. SECCIÓN DESTACADA: SUBIR CV BASE EN PDF
         pdf_box = ttk.LabelFrame(scrollable_frame, text=" 📄 Cargar CV Base en PDF (Importar Perfil Automáticamente) ", padding=10)
@@ -228,34 +232,63 @@ class TabPerfil(ttk.Frame):
         self.txt_resumen.pack(fill=tk.X)
         self.txt_resumen.insert("1.0", resumen_guardado)
 
-        # 4. IDIOMA PREDETERMINADO DEL CV PDF
+        # 4. FORMACIÓN ACADÉMICA Y MAESTRÍA (MBA) CON OPCIÓN SELECCIONABLE
+        edu_box = ttk.LabelFrame(scrollable_frame, text=" 🎓 Formación Académica & Grados Universitarios (Maestría / MBA) ", padding=10)
+        edu_box.pack(fill=tk.X, pady=(0, 10))
+
+        chk_maestria = ttk.Checkbutton(
+            edu_box,
+            text="Incluir que tengo una Maestría en Administración de Empresas (MBA) en el CV PDF (desmarcar para omitirla por completo)",
+            variable=self.var_mostrar_maestria
+        )
+        chk_maestria.pack(anchor=tk.W, pady=(0, 6))
+
+        edu_info_frame = ttk.Frame(edu_box)
+        edu_info_frame.pack(fill=tk.X, pady=(2, 0))
+        ttk.Label(edu_info_frame, text="Grados académicos registrados en tu perfil:", font=("Segoe UI", 9, "bold")).pack(anchor=tk.W, pady=(0, 2))
+        for e in self.perfil.get("educacion", []):
+            grado_txt = f"• {e.get('grado', '')} ({e.get('especialidad', '')}) — {e.get('institucion', '')} [{e.get('periodo', '')}]"
+            ttk.Label(edu_info_frame, text=grado_txt, font=("Segoe UI", 8), foreground="#334155").pack(anchor=tk.W, padx=(10, 0), pady=1)
+
+        # 5. IDIOMA PREDETERMINADO DEL CV PDF
         lang_box = ttk.LabelFrame(scrollable_frame, text=" 🌐 Idioma Predeterminado del CV PDF ", padding=10)
         lang_box.pack(fill=tk.X, pady=(0, 10))
+
+        chk_en_ingles_base = ttk.Checkbutton(
+            lang_box,
+            text="En inglés (Generar por defecto el CV PDF 100% en inglés)",
+            variable=self.var_en_ingles_default,
+            command=self._on_check_en_ingles_default_changed
+        )
+        chk_en_ingles_base.pack(anchor=tk.W, pady=(0, 6))
 
         lang_row = ttk.Frame(lang_box)
         lang_row.pack(fill=tk.X)
 
-        ttk.Label(lang_row, text="Generar por defecto en:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Label(lang_row, text="O seleccionar:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT, padx=(0, 10))
 
         ttk.Radiobutton(
             lang_row,
             text="🇲🇽 100% Español",
             value="es",
-            variable=self.var_idioma_default
+            variable=self.var_idioma_default,
+            command=self._on_radio_idioma_default_changed
         ).pack(side=tk.LEFT, padx=(0, 10))
 
         ttk.Radiobutton(
             lang_row,
             text="🇺🇸 100% Inglés (English)",
             value="en",
-            variable=self.var_idioma_default
+            variable=self.var_idioma_default,
+            command=self._on_radio_idioma_default_changed
         ).pack(side=tk.LEFT, padx=(0, 10))
 
         ttk.Radiobutton(
             lang_row,
             text="🤖 Auto-detectar según la vacante",
             value="auto",
-            variable=self.var_idioma_default
+            variable=self.var_idioma_default,
+            command=self._on_radio_idioma_default_changed
         ).pack(side=tk.LEFT)
 
         # BOTÓN GUARDAR PERFIL
@@ -276,6 +309,15 @@ class TabPerfil(ttk.Frame):
         )
         self.btn_guardar.pack(side=tk.RIGHT)
 
+    def _on_check_en_ingles_default_changed(self):
+        if self.var_en_ingles_default.get():
+            self.var_idioma_default.set("en")
+        else:
+            self.var_idioma_default.set("es")
+
+    def _on_radio_idioma_default_changed(self):
+        self.var_en_ingles_default.set(self.var_idioma_default.get() == "en")
+
     def _guardar_perfil(self):
         try:
             self.perfil["datos_personales"]["nombre"] = self.entry_nombre.get().strip()
@@ -294,6 +336,7 @@ class TabPerfil(ttk.Frame):
             self.perfil["resumen_base_fijo"] = resumen_texto
 
             # Guardar preferencias de visibilidad
+            es_ingles = self.var_en_ingles_default.get() or (self.var_idioma_default.get() == "en")
             self.perfil["opciones_visibilidad"] = {
                 "usar_titulo_fijo": self.var_usar_titulo_fijo.get(),
                 "mostrar_ubicacion": self.var_mostrar_ubicacion.get(),
@@ -301,7 +344,9 @@ class TabPerfil(ttk.Frame):
                 "mostrar_disponibilidad": self.var_mostrar_disponibilidad.get(),
                 "mostrar_licencias": self.var_mostrar_licencias.get(),
                 "usar_resumen_fijo": self.var_usar_resumen_fijo.get(),
-                "idioma_predeterminado": self.var_idioma_default.get()
+                "mostrar_maestria": self.var_mostrar_maestria.get(),
+                "en_ingles": es_ingles,
+                "idioma_predeterminado": "en" if es_ingles else self.var_idioma_default.get()
             }
 
             profile_data.save_user_profile(self.perfil)
