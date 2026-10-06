@@ -178,41 +178,51 @@ class TabNuevaPostulacion(ttk.Frame):
         self.var_opt_titulo = tk.BooleanVar(value=opc_init.get("usar_titulo_fijo", False))
         ttk.Checkbutton(row2, text="Título Fijo (desmarcar para usar puesto de vacante)", variable=self.var_opt_titulo).pack(side=tk.LEFT)
 
-        # Opciones y Botón de procesamiento
-        btn_frame = ttk.Frame(frame_izq)
-        btn_frame.pack(fill=tk.X, pady=4)
+        # Sección Destacada: Generar CV PDF
+        acciones_frame = ttk.LabelFrame(frame_izq, text=" 🚀 Generación de CV PDF ", padding=8)
+        acciones_frame.pack(fill=tk.X, pady=(4, 6))
 
         self.var_usar_ia = tk.BooleanVar(value=True)
-        self.chk_ia = ttk.Checkbutton(btn_frame, text="Usar IA de Gemini para maximizar ATS", variable=self.var_usar_ia)
-        self.chk_ia.pack(side=tk.LEFT)
+        self.chk_ia = ttk.Checkbutton(
+            acciones_frame,
+            text="Usar IA de Gemini para maximizar ATS y adaptar perfil",
+            variable=self.var_usar_ia
+        )
+        self.chk_ia.pack(anchor=tk.W, pady=(0, 6))
 
+        # Botón PRINCIPAL y PROMINENTE: Generar CV PDF
+        self.btn_generar = tk.Button(
+            acciones_frame,
+            text="📄 Generar CV PDF",
+            bg="#1d4ed8",
+            fg="white",
+            font=("Segoe UI", 11, "bold"),
+            relief=tk.FLAT,
+            padx=16,
+            pady=9,
+            command=self._iniciar_generacion_thread,
+            cursor="hand2",
+            activebackground="#1e40af",
+            activeforeground="white"
+        )
+        self.btn_generar.pack(fill=tk.X, pady=(0, 4))
+
+        # Botón secundario: Generar y Descargar directo
         self.btn_generar_descargar = tk.Button(
-            btn_frame,
-            text="📥 Generar y Descargar CV PDF",
+            acciones_frame,
+            text="📥 Generar y Descargar PDF Directo a Carpeta...",
             bg="#0f766e",
             fg="white",
             font=("Segoe UI", 9, "bold"),
             relief=tk.FLAT,
             padx=10,
-            pady=6,
+            pady=5,
             command=self._generar_y_descargar_directo,
-            cursor="hand2"
+            cursor="hand2",
+            activebackground="#115e59",
+            activeforeground="white"
         )
-        self.btn_generar_descargar.pack(side=tk.RIGHT, padx=(6, 0))
-
-        self.btn_generar = tk.Button(
-            btn_frame,
-            text="⚡ Analizar Oferta y Generar CV + Correo",
-            bg="#1a56db",
-            fg="white",
-            font=("Segoe UI", 9, "bold"),
-            relief=tk.FLAT,
-            padx=10,
-            pady=6,
-            command=self._iniciar_generacion_thread,
-            cursor="hand2"
-        )
-        self.btn_generar.pack(side=tk.RIGHT)
+        self.btn_generar_descargar.pack(fill=tk.X)
 
         # Barra de progreso / Estado
         self.lbl_status = ttk.Label(frame_izq, text="Listo para procesar oferta.", font=("Segoe UI", 8, "italic"), foreground="#4a5568")
@@ -220,37 +230,31 @@ class TabNuevaPostulacion(ttk.Frame):
         self.prog_bar = ttk.Progressbar(frame_izq, mode="indeterminate")
 
         # --- CONTENIDO COLUMNA DERECHA ---
-        notebook_res = ttk.Notebook(frame_der)
-        notebook_res.pack(fill=tk.BOTH, expand=True)
+        self.notebook_res = ttk.Notebook(frame_der)
+        self.notebook_res.pack(fill=tk.BOTH, expand=True)
 
-        # Pestaña Correo
-        tab_correo = ttk.Frame(notebook_res, padding=8)
-        notebook_res.add(tab_correo, text=" ✉️ Correo de Postulación ")
+        # 1. Pestaña CV PDF (Primera pestaña por defecto)
+        self.tab_pdf = ttk.Frame(self.notebook_res, padding=10)
+        self.notebook_res.add(self.tab_pdf, text=" 📄 CV PDF Generado ")
 
-        # Asunto
-        asunto_frame = ttk.Frame(tab_correo)
-        asunto_frame.pack(fill=tk.X, pady=(0, 6))
-        ttk.Label(asunto_frame, text="Asunto:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT)
-        self.entry_asunto = ttk.Entry(asunto_frame, font=("Segoe UI", 9))
-        self.entry_asunto.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
-        ttk.Button(asunto_frame, text="📋 Copiar", width=9, command=self._copiar_asunto).pack(side=tk.RIGHT)
+        # Botón destacado dentro de la pestaña para generar el CV PDF
+        self.btn_generar_cv_pdf_tab = tk.Button(
+            self.tab_pdf,
+            text="📄 Generar CV PDF con los Datos de la Vacante",
+            bg="#1d4ed8",
+            fg="white",
+            font=("Segoe UI", 11, "bold"),
+            relief=tk.FLAT,
+            padx=14,
+            pady=9,
+            command=self._iniciar_generacion_thread,
+            cursor="hand2",
+            activebackground="#1e40af",
+            activeforeground="white"
+        )
+        self.btn_generar_cv_pdf_tab.pack(fill=tk.X, pady=(0, 10))
 
-        # Cuerpo del correo
-        ttk.Label(tab_correo, text="Cuerpo del Correo (Listo para enviar):", font=("Segoe UI", 9, "bold")).pack(anchor=tk.W, pady=(4, 2))
-        self.txt_correo = scrolledtext.ScrolledText(tab_correo, height=12, wrap=tk.WORD, font=("Segoe UI", 9))
-        self.txt_correo.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
-
-        # Botones de acción del correo
-        acciones_correo = ttk.Frame(tab_correo)
-        acciones_correo.pack(fill=tk.X)
-        ttk.Button(acciones_correo, text="📋 Copiar Cuerpo del Correo", command=self._copiar_correo).pack(side=tk.LEFT, padx=(0, 6))
-        ttk.Button(acciones_correo, text="📨 Abrir en Cliente de Correo", command=self._abrir_en_correo).pack(side=tk.LEFT)
-
-        # Pestaña CV PDF
-        tab_pdf = ttk.Frame(notebook_res, padding=10)
-        notebook_res.add(tab_pdf, text=" 📄 CV PDF Generado ")
-
-        info_box = ttk.LabelFrame(tab_pdf, text=" Estado del Documento PDF ", padding=10)
+        info_box = ttk.LabelFrame(self.tab_pdf, text=" Estado del Documento PDF ", padding=10)
         info_box.pack(fill=tk.X, pady=(0, 10))
 
         self.lbl_pdf_ruta = ttk.Label(info_box, text="Aún no se ha generado ningún PDF.", wraplength=420, font=("Segoe UI", 9))
@@ -260,7 +264,7 @@ class TabNuevaPostulacion(ttk.Frame):
         self.lbl_pdf_detalles.pack(anchor=tk.W)
 
         # Botones para el PDF
-        pdf_btns = ttk.Frame(tab_pdf)
+        pdf_btns = ttk.Frame(self.tab_pdf)
         pdf_btns.pack(fill=tk.X, pady=10)
 
         self.btn_descargar_pdf = tk.Button(
@@ -292,6 +296,29 @@ class TabNuevaPostulacion(ttk.Frame):
             cursor="hand2"
         )
         self.btn_abrir_pdf.pack(fill=tk.X, pady=4)
+
+        # 2. Pestaña Correo (Segunda pestaña)
+        self.tab_correo = ttk.Frame(self.notebook_res, padding=8)
+        self.notebook_res.add(self.tab_correo, text=" ✉️ Correo de Postulación ")
+
+        # Asunto
+        asunto_frame = ttk.Frame(self.tab_correo)
+        asunto_frame.pack(fill=tk.X, pady=(0, 6))
+        ttk.Label(asunto_frame, text="Asunto:", font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT)
+        self.entry_asunto = ttk.Entry(asunto_frame, font=("Segoe UI", 9))
+        self.entry_asunto.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
+        ttk.Button(asunto_frame, text="📋 Copiar", width=9, command=self._copiar_asunto).pack(side=tk.RIGHT)
+
+        # Cuerpo del correo
+        ttk.Label(self.tab_correo, text="Cuerpo del Correo (Listo para enviar):", font=("Segoe UI", 9, "bold")).pack(anchor=tk.W, pady=(4, 2))
+        self.txt_correo = scrolledtext.ScrolledText(self.tab_correo, height=12, wrap=tk.WORD, font=("Segoe UI", 9))
+        self.txt_correo.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
+
+        # Botones de acción del correo
+        acciones_correo = ttk.Frame(self.tab_correo)
+        acciones_correo.pack(fill=tk.X)
+        ttk.Button(acciones_correo, text="📋 Copiar Cuerpo del Correo", command=self._copiar_correo).pack(side=tk.LEFT, padx=(0, 6))
+        ttk.Button(acciones_correo, text="📨 Abrir en Cliente de Correo", command=self._abrir_en_correo).pack(side=tk.LEFT)
 
         # Barra inferior de Guardado en MariaDB
         save_box = ttk.LabelFrame(frame_der, text=" 💾 Guardar en Base de Datos MariaDB ", padding=8)
@@ -350,11 +377,23 @@ class TabNuevaPostulacion(ttk.Frame):
     def _iniciar_generacion_thread(self):
         desc = self.txt_oferta.get("1.0", tk.END).strip()
         if not desc:
-            messagebox.showwarning("Atención", "Por favor pega la descripción de la oferta laboral antes de generar.")
-            return
+            resp = messagebox.askyesno(
+                "Generar CV PDF",
+                "No has ingresado la descripción de una vacante específica.\n\n¿Deseas generar el CV PDF profesional con los datos base de tu perfil seleccionado?"
+            )
+            if resp:
+                desc = "Perfil profesional general y trayectoria técnica de Javier Viveros Huesca."
+                self.txt_oferta.insert("1.0", desc)
+            else:
+                self.txt_oferta.focus_set()
+                return
 
         self.btn_generar.config(state=tk.DISABLED)
-        self.lbl_status.config(text="Procesando oferta, adaptando perfil y renderizando PDF...")
+        self.btn_generar_descargar.config(state=tk.DISABLED)
+        if hasattr(self, "btn_generar_cv_pdf_tab"):
+            self.btn_generar_cv_pdf_tab.config(state=tk.DISABLED)
+
+        self.lbl_status.config(text="Procesando oferta, adaptando perfil y renderizando PDF...", foreground="#1d4ed8")
         self.prog_bar.pack(fill=tk.X, pady=(2, 6))
         self.prog_bar.start(10)
 
@@ -432,14 +471,23 @@ class TabNuevaPostulacion(ttk.Frame):
         self.resultado_actual = None
         self.lbl_status.config(text="Listo para procesar una nueva oferta.", foreground="#4a5568")
         self.sincronizar_con_perfil()
+        self.notebook_res.select(self.tab_pdf)
         self.entry_empresa.focus_set()
 
     def _generar_y_descargar_directo(self):
         """Genera el CV PDF alimentado con los datos de la postulación y abre inmediatamente el diálogo para descargarlo."""
         desc = self.txt_oferta.get("1.0", tk.END).strip()
         if not desc:
-            messagebox.showwarning("Atención", "Por favor pega o carga la descripción de la vacante para generar el CV PDF.")
-            return
+            resp = messagebox.askyesno(
+                "Generar y Descargar CV PDF",
+                "No has ingresado la descripción de una vacante específica.\n\n¿Deseas generar y descargar el CV PDF profesional con los datos base de tu perfil seleccionado?"
+            )
+            if resp:
+                desc = "Perfil profesional general y trayectoria técnica de Javier Viveros Huesca."
+                self.txt_oferta.insert("1.0", desc)
+            else:
+                self.txt_oferta.focus_set()
+                return
 
         # Si ya está generado el resultado actual, descargar directamente
         if self.resultado_actual and self.resultado_actual.get("ruta_pdf"):
@@ -449,6 +497,9 @@ class TabNuevaPostulacion(ttk.Frame):
         # Si aún no está generado, generar en hilo y luego descargar
         self.btn_generar.config(state=tk.DISABLED)
         self.btn_generar_descargar.config(state=tk.DISABLED)
+        if hasattr(self, "btn_generar_cv_pdf_tab"):
+            self.btn_generar_cv_pdf_tab.config(state=tk.DISABLED)
+
         self.lbl_status.config(text="Generando CV PDF alimentado con los datos de la vacante...", foreground="#0f766e")
         self.prog_bar.pack(fill=tk.X, pady=(2, 6))
         self.prog_bar.start(10)
@@ -487,7 +538,10 @@ class TabNuevaPostulacion(ttk.Frame):
             self.after(0, callback_final)
         except Exception as e:
             def err_cb():
+                self.btn_generar.config(state=tk.NORMAL)
                 self.btn_generar_descargar.config(state=tk.NORMAL)
+                if hasattr(self, "btn_generar_cv_pdf_tab"):
+                    self.btn_generar_cv_pdf_tab.config(state=tk.NORMAL)
                 self._manejar_error(str(e))
             self.after(0, err_cb)
 
@@ -496,14 +550,12 @@ class TabNuevaPostulacion(ttk.Frame):
         self.prog_bar.pack_forget()
         self.btn_generar.config(state=tk.NORMAL)
         self.btn_generar_descargar.config(state=tk.NORMAL)
+        if hasattr(self, "btn_generar_cv_pdf_tab"):
+            self.btn_generar_cv_pdf_tab.config(state=tk.NORMAL)
         self.resultado_actual = resultado
 
-        # Cargar correo
-        self.entry_asunto.delete(0, tk.END)
-        self.entry_asunto.insert(0, resultado["asunto_correo"])
-
-        self.txt_correo.delete("1.0", tk.END)
-        self.txt_correo.insert("1.0", resultado["cuerpo_correo"])
+        # Seleccionar inmediatamente la pestaña del CV PDF para que el usuario lo vea
+        self.notebook_res.select(self.tab_pdf)
 
         # Cargar datos de PDF
         pdf_path = resultado["ruta_pdf"]
@@ -517,13 +569,22 @@ class TabNuevaPostulacion(ttk.Frame):
         self.btn_abrir_pdf.config(state=tk.NORMAL)
         self.btn_guardar_bd.config(state=tk.NORMAL)
 
-        self.lbl_status.config(text="✅ CV y correo generados con éxito.", foreground="#16a34a")
+        # Cargar correo
+        self.entry_asunto.delete(0, tk.END)
+        self.entry_asunto.insert(0, resultado["asunto_correo"])
+
+        self.txt_correo.delete("1.0", tk.END)
+        self.txt_correo.insert("1.0", resultado["cuerpo_correo"])
+
+        self.lbl_status.config(text="✅ CV PDF y correo generados con éxito.", foreground="#16a34a")
 
     def _manejar_error(self, error_msg):
         self.prog_bar.stop()
         self.prog_bar.pack_forget()
         self.btn_generar.config(state=tk.NORMAL)
         self.btn_generar_descargar.config(state=tk.NORMAL)
+        if hasattr(self, "btn_generar_cv_pdf_tab"):
+            self.btn_generar_cv_pdf_tab.config(state=tk.NORMAL)
         self.lbl_status.config(text="❌ Error durante la generación.", foreground="#dc2626")
         messagebox.showerror("Error al Generar", f"Ocurrió un error al procesar la postulación:\n\n{error_msg}")
 

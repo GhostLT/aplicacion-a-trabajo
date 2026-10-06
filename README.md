@@ -18,6 +18,10 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
    - Detección inteligente de idioma (Español o Inglés).
 
 2. **📄 Generación de CV en PDF Descargable:**
+   - **Botón Destacado `📄 Generar CV PDF`:** Botón principal de alta visibilidad en azul rey ubicado en el panel de control y dentro de la pestaña de visualización del documento. Genera al instante el currículum vitae profesional en PDF adaptado con las palabras clave de la vacante (con opción inteligente de generar el CV base si aún no se ha pegado una vacante específica).
+   - **Pestaña Predeterminada `📄 CV PDF Generado`:** La pestaña de visualización y control del PDF se presenta como la vista principal al abrir la aplicación y se enfoca automáticamente tras cada generación para acceder a la descarga y apertura inmediata.
+   - **Botón `📥 Generar y Descargar PDF Directo a Carpeta...`:** Genera y abre directamente el explorador de archivos para guardar el PDF en la ruta de tu elección (Escritorio, Descargas, etc.).
+   - Botón **📥 Descargar / Guardar PDF como...** y botón **👁️ Abrir PDF en Visor de Windows** para visualización instantánea.
    - Compilación con renderizado tipográfico de precisión mediante motor headless de **Microsoft Edge**.
    - Formato optimizado para sistemas de seguimiento de candidatos (**ATS**).
    - Inclusión automática de credenciales clave:
@@ -26,9 +30,6 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
      - 🎓 **Título y Cédula Profesional de Ingeniero en Electrónica**
      - 📈 **Maestría en Administración de Empresas (MBA)**
      - 🇺🇸 **Elegibilidad inmediata para Visa TN (4 años de experiencia en EE. UU.)**
-   - **Botón `📥 Generar y Descargar CV PDF`:** Genera en 1 solo clic el CV alimentado directamente con los datos de la vacante y abre inmediatamente la ventana para guardarlo en la ubicación que elijas.
-   - Botón **📥 Descargar / Guardar PDF como...** para guardar copias en el Escritorio o cualquier carpeta.
-   - Botón **👁️ Abrir PDF** para visualización instantánea en Windows.
 
 3. **✉️ Redacción de Correos de Postulación (Cover Letter):**
    - Asuntos estructurados de alto impacto (con certificaciones y disponibilidad).
