@@ -26,6 +26,7 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
      - 🎓 **Título y Cédula Profesional de Ingeniero en Electrónica**
      - 📈 **Maestría en Administración de Empresas (MBA)**
      - 🇺🇸 **Elegibilidad inmediata para Visa TN (4 años de experiencia en EE. UU.)**
+   - **Botón `📥 Generar y Descargar CV PDF`:** Genera en 1 solo clic el CV alimentado directamente con los datos de la vacante y abre inmediatamente la ventana para guardarlo en la ubicación que elijas.
    - Botón **📥 Descargar / Guardar PDF como...** para guardar copias en el Escritorio o cualquier carpeta.
    - Botón **👁️ Abrir PDF** para visualización instantánea en Windows.
 
@@ -65,6 +66,11 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
    - **Perfil de GitHub:** Opción para mostrar u **omitir el enlace de GitHub** en el CV PDF.
    - **Disponibilidad:** Opción para mostrar u **omitir el estatus de disponibilidad / Visa TN** en los distintivos del encabezado.
    - *Estas opciones se guardan de forma permanente en `user_profile.json` desde la pestaña **Mi Perfil Base** y también se pueden ajustar al instante para cada vacante desde la pestaña **Nueva Postulación**.*
+
+8. **🔄 Flujo Continuo de Nuevas Postulaciones (Sin Reiniciar la Aplicación):**
+   - **Botón `✨ Iniciar Nueva Postulación (Limpiar Formulario)`:** Ubicado en la barra superior izquierda para vaciar los campos, remover capturas cargadas y restablecer el estado inicial en 1 solo clic.
+   - **Botón `✨ Crear Nueva Postulación`:** Disponible directamente en la barra de guardado de MariaDB.
+   - Diálogo automático tras guardar exitosamente en la base de datos que te ofrece limpiar el formulario para iniciar la siguiente postulación de inmediato sin tener que cerrar y abrir la aplicación.
 
 ---
 

@@ -33,6 +33,24 @@ class TabNuevaPostulacion(ttk.Frame):
         paned.add(frame_der, weight=1)
 
         # --- CONTENIDO COLUMNA IZQUIERDA ---
+        # Barra superior con botón de Nueva Postulación
+        top_bar = ttk.Frame(frame_izq)
+        top_bar.pack(fill=tk.X, pady=(0, 6))
+
+        self.btn_nueva_postulacion = tk.Button(
+            top_bar,
+            text="✨ Iniciar Nueva Postulación (Limpiar Formulario)",
+            bg="#0f3460",
+            fg="white",
+            font=("Segoe UI", 9, "bold"),
+            relief=tk.FLAT,
+            padx=10,
+            pady=3,
+            command=self.limpiar_para_nueva_postulacion,
+            cursor="hand2"
+        )
+        self.btn_nueva_postulacion.pack(side=tk.LEFT)
+
         grid_frame = ttk.Frame(frame_izq)
         grid_frame.pack(fill=tk.X, pady=(0, 8))
 
@@ -168,14 +186,28 @@ class TabNuevaPostulacion(ttk.Frame):
         self.chk_ia = ttk.Checkbutton(btn_frame, text="Usar IA de Gemini para maximizar ATS", variable=self.var_usar_ia)
         self.chk_ia.pack(side=tk.LEFT)
 
+        self.btn_generar_descargar = tk.Button(
+            btn_frame,
+            text="📥 Generar y Descargar CV PDF",
+            bg="#0f766e",
+            fg="white",
+            font=("Segoe UI", 9, "bold"),
+            relief=tk.FLAT,
+            padx=10,
+            pady=6,
+            command=self._generar_y_descargar_directo,
+            cursor="hand2"
+        )
+        self.btn_generar_descargar.pack(side=tk.RIGHT, padx=(6, 0))
+
         self.btn_generar = tk.Button(
             btn_frame,
             text="⚡ Analizar Oferta y Generar CV + Correo",
             bg="#1a56db",
             fg="white",
-            font=("Segoe UI", 10, "bold"),
+            font=("Segoe UI", 9, "bold"),
             relief=tk.FLAT,
-            padx=12,
+            padx=10,
             pady=6,
             command=self._iniciar_generacion_thread,
             cursor="hand2"
@@ -293,6 +325,20 @@ class TabNuevaPostulacion(ttk.Frame):
         )
         self.btn_guardar_bd.pack(side=tk.RIGHT)
 
+        self.btn_crear_otra = tk.Button(
+            save_row,
+            text="✨ Crear Nueva Postulación",
+            bg="#334155",
+            fg="white",
+            font=("Segoe UI", 9, "bold"),
+            relief=tk.FLAT,
+            padx=10,
+            pady=4,
+            command=self.limpiar_para_nueva_postulacion,
+            cursor="hand2"
+        )
+        self.btn_crear_otra.pack(side=tk.RIGHT, padx=(0, 6))
+
         # Notas rápidas
         notas_row = ttk.Frame(save_box)
         notas_row.pack(fill=tk.X, pady=(4, 0))
@@ -354,10 +400,102 @@ class TabNuevaPostulacion(ttk.Frame):
         except Exception as e:
             self.after(0, lambda: self._manejar_error(str(e)))
 
+    def limpiar_para_nueva_postulacion(self):
+        """Limpia todos los campos, textos, imágenes y estados para iniciar una nueva postulación desde cero."""
+        self.entry_empresa.delete(0, tk.END)
+        self.entry_puesto.delete(0, tk.END)
+        self.entry_ubicacion.delete(0, tk.END)
+        self.entry_ubicacion.insert(0, "Houston, TX / Remoto / México")
+        self.entry_url.delete(0, tk.END)
+        self.combo_perfil.current(0)
+        self.combo_idioma.current(0)
+
+        self._quitar_imagen_oferta()
+
+        self.txt_oferta.delete("1.0", tk.END)
+
+        # Limpiar resultados
+        self.entry_asunto.delete(0, tk.END)
+        self.txt_correo.delete("1.0", tk.END)
+
+        self.lbl_pdf_ruta.config(text="Aún no se ha generado ningún PDF.")
+        self.lbl_pdf_detalles.config(text="")
+
+        self.btn_descargar_pdf.config(state=tk.DISABLED)
+        self.btn_abrir_pdf.config(state=tk.DISABLED)
+        self.btn_guardar_bd.config(state=tk.DISABLED)
+
+        self.entry_notas.delete(0, tk.END)
+        self.entry_notas.insert(0, "Postulación generada desde el sistema.")
+        self.combo_fase_inicial.current(1)
+
+        self.resultado_actual = None
+        self.lbl_status.config(text="Listo para procesar una nueva oferta.", foreground="#4a5568")
+        self.sincronizar_con_perfil()
+        self.entry_empresa.focus_set()
+
+    def _generar_y_descargar_directo(self):
+        """Genera el CV PDF alimentado con los datos de la postulación y abre inmediatamente el diálogo para descargarlo."""
+        desc = self.txt_oferta.get("1.0", tk.END).strip()
+        if not desc:
+            messagebox.showwarning("Atención", "Por favor pega o carga la descripción de la vacante para generar el CV PDF.")
+            return
+
+        # Si ya está generado el resultado actual, descargar directamente
+        if self.resultado_actual and self.resultado_actual.get("ruta_pdf"):
+            self._descargar_pdf()
+            return
+
+        # Si aún no está generado, generar en hilo y luego descargar
+        self.btn_generar.config(state=tk.DISABLED)
+        self.btn_generar_descargar.config(state=tk.DISABLED)
+        self.lbl_status.config(text="Generando CV PDF alimentado con los datos de la vacante...", foreground="#0f766e")
+        self.prog_bar.pack(fill=tk.X, pady=(2, 6))
+        self.prog_bar.start(10)
+
+        t = threading.Thread(target=self._generar_cv_proceso_y_descargar, daemon=True)
+        t.start()
+
+    def _generar_cv_proceso_y_descargar(self):
+        try:
+            datos_oferta = {
+                "empresa": self.entry_empresa.get().strip() or "Empresa Confidencial",
+                "titulo_puesto": self.entry_puesto.get().strip() or "Especialista Técnico",
+                "ubicacion": self.entry_ubicacion.get().strip(),
+                "url_oferta": self.entry_url.get().strip(),
+                "descripcion_oferta": self.txt_oferta.get("1.0", tk.END).strip(),
+                "perfil_aplicado": self.perfiles_map[self.combo_perfil.get()],
+                "idioma": self.idiomas_map[self.combo_idioma.get()],
+                "opciones_visibilidad": {
+                    "mostrar_ubicacion": self.var_opt_ubicacion.get(),
+                    "mostrar_github": self.var_opt_github.get(),
+                    "mostrar_disponibilidad": self.var_opt_disp.get(),
+                    "mostrar_licencias": self.var_opt_licencias.get(),
+                    "usar_resumen_fijo": self.var_opt_resumen.get(),
+                    "usar_titulo_fijo": self.var_opt_titulo.get()
+                }
+            }
+
+            usar_ia = self.var_usar_ia.get()
+            resultado = generator.procesar_postulacion_completa(datos_oferta, usar_ia=usar_ia)
+
+            def callback_final():
+                self._mostrar_resultados(resultado)
+                self.btn_generar_descargar.config(state=tk.NORMAL)
+                self._descargar_pdf()
+
+            self.after(0, callback_final)
+        except Exception as e:
+            def err_cb():
+                self.btn_generar_descargar.config(state=tk.NORMAL)
+                self._manejar_error(str(e))
+            self.after(0, err_cb)
+
     def _mostrar_resultados(self, resultado):
         self.prog_bar.stop()
         self.prog_bar.pack_forget()
         self.btn_generar.config(state=tk.NORMAL)
+        self.btn_generar_descargar.config(state=tk.NORMAL)
         self.resultado_actual = resultado
 
         # Cargar correo
@@ -385,6 +523,7 @@ class TabNuevaPostulacion(ttk.Frame):
         self.prog_bar.stop()
         self.prog_bar.pack_forget()
         self.btn_generar.config(state=tk.NORMAL)
+        self.btn_generar_descargar.config(state=tk.NORMAL)
         self.lbl_status.config(text="❌ Error durante la generación.", foreground="#dc2626")
         messagebox.showerror("Error al Generar", f"Ocurrió un error al procesar la postulación:\n\n{error_msg}")
 
@@ -539,15 +678,15 @@ class TabNuevaPostulacion(ttk.Frame):
 
         try:
             nuevo_id = database.guardar_aplicacion(datos_guardar)
-            messagebox.showinfo(
+            if messagebox.askyesno(
                 "Guardado en MariaDB",
                 f"✅ Postulación guardada con éxito en la base de datos (ID #{nuevo_id}).\n\n"
                 f"Fase: {datos_guardar['estado']}\n"
-                f"Empresa: {datos_guardar['empresa']}"
-            )
-            self.btn_guardar_bd.config(state=tk.DISABLED)
-
-            if self.on_guardado_callback:
+                f"Empresa: {datos_guardar['empresa']}\n\n"
+                "¿Deseas limpiar el formulario para iniciar una nueva postulación ahora?"
+            ):
+                self.limpiar_para_nueva_postulacion()
+            elif self.on_guardado_callback:
                 self.on_guardado_callback()
         except Exception as e:
             messagebox.showerror("Error en MariaDB", f"No se pudo guardar en la base de datos:\n\n{str(e)}")
