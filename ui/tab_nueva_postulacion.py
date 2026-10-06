@@ -119,8 +119,10 @@ class TabNuevaPostulacion(ttk.Frame):
         self.btn_leer_img = tk.Button(
             img_ctrls,
             text="✨ Extraer Datos con IA (OCR)",
-            bg="#7c3aed",
+            bg="#ea580c",
             fg="white",
+            activebackground="#c2410c",
+            activeforeground="white",
             font=("Segoe UI", 8, "bold"),
             relief=tk.FLAT,
             padx=8,
@@ -667,7 +669,7 @@ class TabNuevaPostulacion(ttk.Frame):
             return
 
         self.btn_leer_img.config(state=tk.DISABLED)
-        self.lbl_status.config(text="Leyendo y transcribiendo oferta desde la imagen con IA...", foreground="#7c3aed")
+        self.lbl_status.config(text="Leyendo y transcribiendo oferta desde la imagen con IA...", foreground="#ea580c")
         self.prog_bar.pack(fill=tk.X, pady=(2, 6))
         self.prog_bar.start(10)
 

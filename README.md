@@ -7,7 +7,7 @@ Aplicación de escritorio desarrollada en **Python** con interfaz gráfica moder
 ## 🌟 Características Principales
 
 1. **📋 Cargar o Pegar Ofertas de Empleo (Texto o Imagen/Captura):**
-   - **Carga de Capturas de Pantalla / Imágenes:** Botón para cargar fotos o capturas de ofertas (LinkedIn, portales web, WhatsApp, redes sociales) y extraer automáticamente con **Inteligencia Artificial Multimodal (Gemini Vision)** el nombre de la empresa, puesto, ubicación y transcripción completa de los requisitos.
+   - **Carga de Capturas de Pantalla / Imágenes:** Botón para cargar fotos o capturas de ofertas (LinkedIn, portales web, WhatsApp, redes sociales) y botón naranja destacado **`✨ Extraer Datos con IA (OCR)`** para analizar y extraer automáticamente con **Inteligencia Artificial Multimodal (Gemini Vision)** el nombre de la empresa, puesto, ubicación y transcripción completa de los requisitos.
    - **Pegado Manual:** Campo de texto amplio para pegar descripciones copiadas de cualquier portal de empleo.
    - **Detección Automática o Manual de Perfil:**
      - *Automatización & Field Service (Houston / PLC)*
