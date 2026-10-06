@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<head>
+<meta charset="UTF-8">
+<title>CV - {{NOMBRE}} - {{TITULO}}</title>
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    @page {
+        size: letter;
+        margin: 8mm 12mm 8mm 12mm;
+    }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: #1a202c;
+        background-color: #ffffff;
+        font-size: 8.5pt;
+        line-height: 1.32;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .header {
+        border-bottom: 2.5px solid #0f3460;
+        padding-bottom: 5px;
+        margin-bottom: 6px;
+    }
+    .name-title-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    .candidate-name {
+        font-size: 17pt;
+        font-weight: 800;
+        color: #0f3460;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        line-height: 1.1;
+    }
+    .candidate-target {
+        font-size: 9.6pt;
+        font-weight: 700;
+        color: #1a56db;
+        margin-top: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.35px;
+    }
+    .contact-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 5px;
+        font-size: 8.2pt;
+        color: #2d3748;
+    }
+    .contact-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .contact-item strong {
+        color: #0f3460;
+    }
+    .badges-bar {
+        margin-top: 5px;
+        font-size: 8pt;
+        color: #1e3a5f;
+        background-color: #edf2f7;
+        padding: 4px 9px;
+        border-radius: 4px;
+        border-left: 3.5px solid #1a56db;
+        line-height: 1.3;
+    }
+    .section-title {
+        font-size: 9.3pt;
+        font-weight: 700;
+        color: #0f3460;
+        text-transform: uppercase;
+        border-bottom: 1.3px solid #cbd5e0;
+        padding-bottom: 2px;
+        margin-top: 7px;
+        margin-bottom: 4px;
+        letter-spacing: 0.4px;
+    }
+    .summary-text {
+        font-size: 8.3pt;
+        line-height: 1.3;
+        color: #2d3748;
+        text-align: justify;
+        margin-bottom: 5px;
+    }
+    .skills-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px 14px;
+        font-size: 8.2pt;
+        margin-bottom: 5px;
+    }
+    .skill-item {
+        line-height: 1.3;
+        color: #2d3748;
+    }
+    .skill-item::before {
+        content: "▪ ";
+        color: #1a56db;
+        font-weight: bold;
+    }
+    .job-block {
+        margin-bottom: 6px;
+    }
+    .job-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 2px;
+    }
+    .job-title {
+        font-size: 8.9pt;
+        font-weight: 700;
+        color: #0f3460;
+    }
+    .job-company {
+        font-size: 8.7pt;
+        font-weight: 600;
+        color: #1a56db;
+    }
+    .job-meta {
+        font-size: 8pt;
+        font-weight: 500;
+        color: #64748b;
+        text-align: right;
+    }
+    ul.bullet-list {
+        list-style-type: disc;
+        padding-left: 15px;
+        margin-top: 2px;
+        margin-bottom: 3px;
+    }
+    ul.bullet-list li {
+        font-size: 8.2pt;
+        line-height: 1.3;
+        color: #2d3748;
+        margin-bottom: 2px;
+        text-align: justify;
+    }
+    .edu-block {
+        display: flex;
+        justify-content: space-between;
+        font-size: 8.2pt;
+        margin-bottom: 3px;
+    }
+    .edu-degree {
+        font-weight: 700;
+        color: #0f3460;
+    }
+    .edu-school {
+        color: #4a5568;
+    }
+    .edu-period {
+        color: #64748b;
+    }
+    .credentials-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 3px;
+    }
+    .credentials-list li {
+        font-size: 8.2pt;
+        line-height: 1.32;
+        color: #2d3748;
+        margin-bottom: 2px;
+    }
+    .credentials-list li::before {
+        content: "✔ ";
+        color: #0f3460;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="name-title-container">
+        <div>
+            <div class="candidate-name">{{NOMBRE}}</div>
+            <div class="candidate-target">{{TITULO}}</div>
+        </div>
+    </div>
+    
+    <div class="contact-bar">
+        <div class="contact-item"><strong>📞 Tel:</strong> {{TELEFONO}}</div>
+        <div class="contact-item"><strong>✉️ Correo:</strong> {{EMAIL}}</div>
+        <div class="contact-item"><strong>📍 Ubicación:</strong> {{UBICACION}}</div>
+        <div class="contact-item"><strong>🌐 GitHub:</strong> {{GITHUB}}</div>
+    </div>
+
+    <div class="badges-bar">
+        <strong>Credenciales Clave:</strong> {{BADGES}}
+    </div>
+</div>
+
+<div class="section-title">Perfil Profesional</div>
+<div class="summary-text">
+    {{RESUMEN}}
+</div>
+
+<div class="section-title">Habilidades & Competencias Técnicas Clave</div>
+<div class="skills-grid">
+    {{HABILIDADES_HTML}}
+</div>
+
+<div class="section-title">Experiencia Profesional Relevante</div>
+{{EXPERIENCIA_HTML}}
+
+<div class="section-title">Educación & Formación Académica</div>
+{{EDUCACION_HTML}}
+
+<div class="section-title">Certificaciones & Licencias Profesionales</div>
+<ul class="credentials-list">
+    {{CREDENCIALES_HTML}}
+</ul>
+
+</body>
+</html>
