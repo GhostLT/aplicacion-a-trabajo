@@ -1,4 +1,4 @@
-﻿import os
+import os
 import re
 import json
 import shutil
@@ -137,6 +137,8 @@ def analizar_perfil_local(texto: str) -> dict:
     for line in texto.splitlines():
         line_clean = line.strip()
         if not line_clean:
+            continue
+        if "linkedin.com" in line_clean.lower() or "github.com" in line_clean.lower():
             continue
         if any(term in line_clean.lower() for term in ["tdlr", "osha", "licencia", "license", "certific", "cédula", "visa"]):
             if len(line_clean) < 130 and line_clean not in credenciales:

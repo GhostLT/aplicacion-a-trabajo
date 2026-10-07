@@ -209,6 +209,9 @@ class TabNuevaPostulacion(ttk.Frame):
         self.var_opt_ubicacion = tk.BooleanVar(value=opc_init.get("mostrar_ubicacion", True))
         ttk.Checkbutton(row1, text="Ubicación", variable=self.var_opt_ubicacion).pack(side=tk.LEFT, padx=(0, 8))
 
+        self.var_opt_linkedin = tk.BooleanVar(value=opc_init.get("mostrar_linkedin", True))
+        ttk.Checkbutton(row1, text="LinkedIn", variable=self.var_opt_linkedin).pack(side=tk.LEFT, padx=(0, 8))
+
         self.var_opt_github = tk.BooleanVar(value=opc_init.get("mostrar_github", True))
         ttk.Checkbutton(row1, text="GitHub", variable=self.var_opt_github).pack(side=tk.LEFT, padx=(0, 8))
 
@@ -560,6 +563,7 @@ class TabNuevaPostulacion(ttk.Frame):
             "idioma": idioma_elegido,
             "opciones_visibilidad": {
                 "mostrar_ubicacion": self.var_opt_ubicacion.get(),
+                "mostrar_linkedin": self.var_opt_linkedin.get(),
                 "mostrar_github": self.var_opt_github.get(),
                 "mostrar_disponibilidad": self.var_opt_disp.get(),
                 "mostrar_licencias": self.var_opt_licencias.get(),
@@ -624,6 +628,7 @@ class TabNuevaPostulacion(ttk.Frame):
         p = profile_data.load_user_profile()
         opc = p.get("opciones_visibilidad", {})
         self.var_opt_ubicacion.set(opc.get("mostrar_ubicacion", True))
+        self.var_opt_linkedin.set(opc.get("mostrar_linkedin", True))
         self.var_opt_github.set(opc.get("mostrar_github", True))
         self.var_opt_disp.set(opc.get("mostrar_disponibilidad", True))
         self.var_opt_licencias.set(opc.get("mostrar_licencias", True))

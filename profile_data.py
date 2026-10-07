@@ -9,7 +9,7 @@ DEFAULT_PROFILE = {
         "telefono": "+52 (669) 533-0508",
         "email": "viverosjavier86@gmail.com",
         "ubicacion": "Mazatlán, Sinaloa, México / Houston, Texas, EE. UU.",
-        "linkedin": "linkedin.com/in/javier-viveros",
+        "linkedin": "www.linkedin.com/in/javier-huesca-56a31856",
         "github": "https://github.com/GhostLT",
         "idiomas": "Español (Nativo) | Inglés (C1 Profesional Fluido)",
         "disponibilidad": "Inmediata para proyectos locales, viajes o reubicación en EE. UU. (Elegible Visa TN)"
@@ -17,6 +17,7 @@ DEFAULT_PROFILE = {
     "opciones_visibilidad": {
         "usar_titulo_fijo": False,         # False: usa el nombre del perfil de la postulación; True: usa titulo_principal
         "mostrar_ubicacion": True,         # True: muestra ubicación en el PDF; False: se omite
+        "mostrar_linkedin": True,          # True: muestra LinkedIn en el PDF; False: se omite
         "mostrar_github": True,            # True: muestra GitHub en el PDF; False: se omite
         "mostrar_disponibilidad": True,    # True: muestra disponibilidad en el PDF; False: se omite
         "mostrar_licencias": True,         # True: incluye la sección de licencias; False: se omite en el PDF

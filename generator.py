@@ -277,7 +277,7 @@ Javier Viveros Huesca
 Electronics Engineer | Technical Specialist
 Phone / WhatsApp: {datos_p['telefono']}
 Email: {datos_p['email']}
-Location: {datos_p['ubicacion']}
+{f"LinkedIn: {datos_p['linkedin']}" + chr(10) if (datos_oferta.get("opciones_visibilidad", {}).get("mostrar_linkedin", perfil_base.get("opciones_visibilidad", {}).get("mostrar_linkedin", True)) and datos_p.get("linkedin")) else ""}Location: {datos_p['ubicacion']}
 Credentials: Texas TDLR #702789 | OSHA 30 #26-607426714 | TN Visa Ready
 """
         habilidades_finales = HABILIDADES_EN.get(perfil_clave, HABILIDADES_EN["automatizacion"])
@@ -315,7 +315,7 @@ Ing. Javier Viveros Huesca
 Ingeniero en Electrónica | Especialista Técnico
 Teléfono / WhatsApp: {datos_p['telefono']}
 Correo: {datos_p['email']}
-Ubicación: {datos_p['ubicacion']}
+{f"LinkedIn: {datos_p['linkedin']}" + chr(10) if (datos_oferta.get("opciones_visibilidad", {}).get("mostrar_linkedin", perfil_base.get("opciones_visibilidad", {}).get("mostrar_linkedin", True)) and datos_p.get("linkedin")) else ""}Ubicación: {datos_p['ubicacion']}
 Credenciales: Licencia Texas TDLR #702789 | OSHA 30 Horas #26-607426714
 """
         habilidades_finales = especialidad.get("habilidades_clave", [])
@@ -395,9 +395,21 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
     else:
         ubicacion_item = ""
 
+    # LinkedIn
+    if opciones.get("mostrar_linkedin", True) and p_data.get("linkedin"):
+        li_raw = p_data["linkedin"].strip()
+        li_href = li_raw if li_raw.startswith("http") else f"https://{li_raw}"
+        li_text = li_raw.replace("https://", "").replace("http://", "").rstrip("/")
+        linkedin_item = f'<div class="contact-item"><strong>💼 LinkedIn:</strong> <a href="{li_href}" style="color: inherit; text-decoration: none;">{li_text}</a></div>'
+    else:
+        linkedin_item = ""
+
     # GitHub
     if opciones.get("mostrar_github", True) and p_data.get("github"):
-        github_item = f'<div class="contact-item"><strong>🌐 GitHub:</strong> {p_data["github"]}</div>'
+        gh_raw = p_data["github"].strip()
+        gh_href = gh_raw if gh_raw.startswith("http") else f"https://{gh_raw}"
+        gh_text = gh_raw.replace("https://", "").replace("http://", "").rstrip("/")
+        github_item = f'<div class="contact-item"><strong>🌐 GitHub:</strong> <a href="{gh_href}" style="color: inherit; text-decoration: none;">{gh_text}</a></div>'
     else:
         github_item = ""
 
@@ -521,6 +533,7 @@ def construir_html_cv(datos_cv: dict, perfil_base: dict, idioma: str, opciones: 
         "{{LABEL_EMAIL}}": label_email,
         "{{EMAIL}}": p_data["email"],
         "{{UBICACION_ITEM}}": ubicacion_item,
+        "{{LINKEDIN_ITEM}}": linkedin_item,
         "{{GITHUB_ITEM}}": github_item,
         "{{BADGES_BAR}}": badges_bar,
         "{{TITULO_RESUMEN}}": titulo_resumen,

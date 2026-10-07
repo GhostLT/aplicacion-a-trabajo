@@ -51,6 +51,7 @@ class TabPerfil(ttk.Frame):
         # Variables de control para las opciones de selección/omisión
         self.var_usar_titulo_fijo = tk.BooleanVar(value=opc.get("usar_titulo_fijo", False))
         self.var_mostrar_ubicacion = tk.BooleanVar(value=opc.get("mostrar_ubicacion", True))
+        self.var_mostrar_linkedin = tk.BooleanVar(value=opc.get("mostrar_linkedin", True))
         self.var_mostrar_github = tk.BooleanVar(value=opc.get("mostrar_github", True))
         self.var_mostrar_disponibilidad = tk.BooleanVar(value=opc.get("mostrar_disponibilidad", True))
         self.var_mostrar_licencias = tk.BooleanVar(value=opc.get("mostrar_licencias", True))
@@ -181,35 +182,47 @@ class TabPerfil(ttk.Frame):
         )
         chk_ubicacion.grid(row=6, column=1, sticky=tk.W, pady=(0, 5), padx=6)
 
+        # Perfil LinkedIn con opción seleccionable
+        ttk.Label(grid, text="Perfil LinkedIn:").grid(row=7, column=0, sticky=tk.W, pady=3)
+        self.entry_linkedin = ttk.Entry(grid, width=45)
+        self.entry_linkedin.insert(0, p.get("linkedin", "www.linkedin.com/in/javier-huesca-56a31856"))
+        self.entry_linkedin.grid(row=7, column=1, sticky=tk.W, pady=3, padx=6)
+        chk_linkedin = ttk.Checkbutton(
+            grid,
+            text="Mostrar en el CV PDF descargable (si se desmarca, se omite por completo)",
+            variable=self.var_mostrar_linkedin
+        )
+        chk_linkedin.grid(row=8, column=1, sticky=tk.W, pady=(0, 5), padx=6)
+
         # Perfil GitHub con opción seleccionable
-        ttk.Label(grid, text="Perfil GitHub:").grid(row=7, column=0, sticky=tk.W, pady=3)
+        ttk.Label(grid, text="Perfil GitHub:").grid(row=9, column=0, sticky=tk.W, pady=3)
         self.entry_github = ttk.Entry(grid, width=45)
         self.entry_github.insert(0, p.get("github", ""))
-        self.entry_github.grid(row=7, column=1, sticky=tk.W, pady=3, padx=6)
+        self.entry_github.grid(row=9, column=1, sticky=tk.W, pady=3, padx=6)
         chk_github = ttk.Checkbutton(
             grid,
             text="Mostrar en el CV PDF descargable (si se desmarca, se omite por completo)",
             variable=self.var_mostrar_github
         )
-        chk_github.grid(row=8, column=1, sticky=tk.W, pady=(0, 5), padx=6)
+        chk_github.grid(row=10, column=1, sticky=tk.W, pady=(0, 5), padx=6)
 
         # Idiomas
-        ttk.Label(grid, text="Idiomas:").grid(row=9, column=0, sticky=tk.W, pady=3)
+        ttk.Label(grid, text="Idiomas:").grid(row=11, column=0, sticky=tk.W, pady=3)
         self.entry_idiomas = ttk.Entry(grid, width=45)
         self.entry_idiomas.insert(0, p.get("idiomas", ""))
-        self.entry_idiomas.grid(row=9, column=1, sticky=tk.W, pady=3, padx=6)
+        self.entry_idiomas.grid(row=11, column=1, sticky=tk.W, pady=3, padx=6)
 
         # Disponibilidad con opción seleccionable
-        ttk.Label(grid, text="Disponibilidad:").grid(row=10, column=0, sticky=tk.W, pady=3)
+        ttk.Label(grid, text="Disponibilidad:").grid(row=12, column=0, sticky=tk.W, pady=3)
         self.entry_disp = ttk.Entry(grid, width=45)
         self.entry_disp.insert(0, p.get("disponibilidad", ""))
-        self.entry_disp.grid(row=10, column=1, sticky=tk.W, pady=3, padx=6)
+        self.entry_disp.grid(row=12, column=1, sticky=tk.W, pady=3, padx=6)
         chk_disp = ttk.Checkbutton(
             grid,
             text="Mostrar en el CV PDF descargable (si se desmarca, se omite por completo)",
             variable=self.var_mostrar_disponibilidad
         )
-        chk_disp.grid(row=11, column=1, sticky=tk.W, pady=(0, 5), padx=6)
+        chk_disp.grid(row=13, column=1, sticky=tk.W, pady=(0, 5), padx=6)
 
         # 2. CREDENCIALES CLAVE Y LICENCIAS CON OPCIÓN SELECCIONABLE
         cred_box = ttk.LabelFrame(scrollable_frame, text=" 📜 Licencias y Certificaciones Clave (Texas TDLR, OSHA 30...) ", padding=10)
@@ -339,6 +352,7 @@ class TabPerfil(ttk.Frame):
             self.perfil["datos_personales"]["telefono"] = self.entry_tel.get().strip()
             self.perfil["datos_personales"]["email"] = self.entry_email.get().strip()
             self.perfil["datos_personales"]["ubicacion"] = self.entry_ubicacion.get().strip()
+            self.perfil["datos_personales"]["linkedin"] = self.entry_linkedin.get().strip()
             self.perfil["datos_personales"]["github"] = self.entry_github.get().strip()
             self.perfil["datos_personales"]["idiomas"] = self.entry_idiomas.get().strip()
             self.perfil["datos_personales"]["disponibilidad"] = self.entry_disp.get().strip()
@@ -354,6 +368,7 @@ class TabPerfil(ttk.Frame):
             self.perfil["opciones_visibilidad"] = {
                 "usar_titulo_fijo": self.var_usar_titulo_fijo.get(),
                 "mostrar_ubicacion": self.var_mostrar_ubicacion.get(),
+                "mostrar_linkedin": self.var_mostrar_linkedin.get(),
                 "mostrar_github": self.var_mostrar_github.get(),
                 "mostrar_disponibilidad": self.var_mostrar_disponibilidad.get(),
                 "mostrar_licencias": self.var_mostrar_licencias.get(),
@@ -505,6 +520,9 @@ class TabPerfil(ttk.Frame):
         self.entry_ubicacion.delete(0, tk.END)
         self.entry_ubicacion.insert(0, p.get("ubicacion", ""))
 
+        self.entry_linkedin.delete(0, tk.END)
+        self.entry_linkedin.insert(0, p.get("linkedin", ""))
+
         self.entry_github.delete(0, tk.END)
         self.entry_github.insert(0, p.get("github", ""))
 
@@ -523,11 +541,16 @@ class TabPerfil(ttk.Frame):
         opc = perfil.get("opciones_visibilidad", {})
         self.var_usar_titulo_fijo.set(opc.get("usar_titulo_fijo", False))
         self.var_mostrar_ubicacion.set(opc.get("mostrar_ubicacion", True))
+        self.var_mostrar_linkedin.set(opc.get("mostrar_linkedin", True))
         self.var_mostrar_github.set(opc.get("mostrar_github", True))
         self.var_mostrar_disponibilidad.set(opc.get("mostrar_disponibilidad", True))
         self.var_mostrar_licencias.set(opc.get("mostrar_licencias", True))
         self.var_usar_resumen_fijo.set(opc.get("usar_resumen_fijo", True))
-        self.var_idioma_default.set(opc.get("idioma_predeterminado", "auto"))
+        self.var_mostrar_maestria.set(opc.get("mostrar_maestria", True))
+        id_pref = opc.get("idioma_predeterminado", "auto")
+        es_en = (id_pref == "en") or bool(opc.get("en_ingles", False))
+        self.var_en_ingles_default.set(es_en)
+        self.var_idioma_default.set("en" if es_en else id_pref)
 
     def _abrir_pdf_base(self):
         if self.ruta_pdf_cv_base and os.path.exists(self.ruta_pdf_cv_base):
